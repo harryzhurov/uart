@@ -1,0 +1,4 @@
+
+sources:
+    - src/sim/uart2/top_tb.sv
+

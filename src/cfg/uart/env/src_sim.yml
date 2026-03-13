@@ -1,0 +1,5 @@
+
+sources:
+    - src/sim/uart/top_tb.sv
+    - src/syn/uart/uart.sv
+

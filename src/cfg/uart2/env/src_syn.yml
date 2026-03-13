@@ -1,0 +1,7 @@
+
+import : main
+
+sources:
+    - src/syn/uart2/top.sv
+    - src/syn/uart2/uart.sv
+

@@ -1,0 +1,74 @@
+site_name: My Docs
+
+#site_url: ''
+#use_directory_urls: false
+
+theme:
+    name: readthedocs
+    max_width: 8000
+    navigation_depth: 5
+    font: false
+    features:
+        - content.code.copy
+        - content.code.annotate
+    #name: windmill
+
+extra_css: 
+    - stylesheets/extra.css
+
+
+nav:
+    - General:
+        - Введение                  : src/in/in.md 
+    - Hardware:       
+        - Аппаратная часть          : src/hw/hw.md
+    - Software:       
+        - Описание ПО               : src/sw/sw.md
+
+
+extra_javascript:
+    - js/mathjax.js
+    - js/mathjax/tex-mml-chtml.js
+    - js/wavedrom.min.js
+    - js/wavedrom_loader.js
+    - js/wavedrom.unpkg.js
+    - js/wavedrom_skin_default.js
+    - https://viewer.diagrams.net/js/viewer-static.min.js
+    - javascripts/drawio-reload.js
+
+
+markdown_extensions:
+    - toc:
+        permalink: "🔗"
+        baselevel: 1
+    - pymdownx.arithmatex:
+       generic: true    
+    - admonition
+    - attr_list
+    - footnotes
+    - markdown_wavedrom
+    - pymdownx.details
+    - pymdownx.superfences
+    - pymdownx.inlinehilite
+    - pymdownx.snippets
+    - pymdownx.superfences
+    - pymdownx.tilde
+    - pymdownx.betterem
+    - pymdownx.blocks.caption
+    - pymdownx.caret
+    - pymdownx.mark
+    - pymdownx.tilde
+    - pymdownx.highlight:
+        anchor_linenums: true
+        line_spans: __span
+        pygments_lang_class: true
+    - pymdownx.superfences
+    - pymdownx.inlinehilite
+    - pymdownx.snippets
+
+plugins:
+    - search:
+        lang: ru
+    - drawio
+    - glightbox
+    #- markdownwavedrom

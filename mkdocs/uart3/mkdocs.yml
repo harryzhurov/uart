@@ -20,10 +20,14 @@ extra_css:
 nav:
     - General:
         - Введение                  : src/in/in.md 
-    - Hardware:       
+    - RTL:       
         - Аппаратная часть          : src/hw/hw.md
-    - Software:       
-        - Описание ПО               : src/sw/sw.md
+    - Testbench:       
+        - Организация               : src/sw/sw.md
+        - Рандомизация              : src/sw/rd.md
+        - Драйвер                   : src/sw/dr.md
+        - Проверка                  : src/sw/cm.md
+         
 
 
 extra_javascript:

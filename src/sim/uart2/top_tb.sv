@@ -69,6 +69,32 @@ int               rx_arr_sent_index  = 0;
 int               rx_arr_rcvd_index  = 0;
 int               err                = 0;
 //===================================================================================
+// Class tx random
+
+class txRandomizer;
+    int zero_data;
+    int send_del_exist;
+    int send_del_dist;
+
+    rand bit       send_del;
+    rand bit [7:0] data;
+    rand int       data_delay;
+
+    function new(tx_random_t tx_cfg);
+        zero_data      = tx_cfg.zero_data;
+        send_del_exist = tx_cfg.send_del_exist;
+        send_del_dist  = tx_cfg.send_del_dist;
+    endfunction
+
+    constraint cst
+    {
+        data       inside {[0:255          ]};
+        data_delay inside {[0:send_del_dist]};
+
+        send_del   dist {0 := (100 - (send_del_exist/100)), 1 := (send_del_exist/100)};
+    }
+
+endclass
 //===================================================================================
 //-----------------------------------------------------------------------------------
 // Generator 100 MHz

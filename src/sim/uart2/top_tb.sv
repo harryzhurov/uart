@@ -209,13 +209,26 @@ task automatic rx_randomizer();
         rx_rden_delay      = rx_obj.rden_delay;
     end
 endtask
+// TX driver
+
+task automatic tx_driver();
     fork
     begin
-        #rx_rand_delay;
-        rxc = 1'b0;                                                     // START BIT
-        for(int i=0; i<8; i++) begin
-            #BIT_UART;
-            rxc = rx_rand_data[i];
+        repeat (NUMBER_OF_TESTS) begin
+            tx_randomizer();
+            tx_send_data(tx_rand_data,tx_send_data_delay);
+            tx_array_sent[tx_arr_sent_index] = tx_rand_data;
+            tx_arr_sent_index                = tx_arr_sent_index + 1;
+        end
+    end
+    begin
+        repeat (NUMBER_OF_TESTS) begin
+            receive_txc();
+        end
+    end
+    join_none
+    wait (tx_arr_rcvd_index == NUMBER_OF_TESTS);
+endtask
         end
         #BIT_UART;
         rxc = rand_stop_bit;                                            // STOP_BIT (0 or 1)

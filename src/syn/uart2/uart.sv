@@ -77,6 +77,14 @@ rx_state_t;
 
 rx_state_t rx_state = RX_IDLE;
 // ======================================================
+//  Initialization
+// ======================================================
+always_ff @(posedge clk) begin
+    init[0] <= 1'b1;
+    init[1] <= init[0];
+    init_en <= init[0] && (!init[1]);
+end
+// ======================================================
 //  Generator of refference frequancy UART
 // ======================================================
 always_ff @(posedge clk) begin
@@ -184,16 +192,16 @@ always_ff @(negedge clk) begin
 end
 //-------------------------------------------------------
 // Synchronization
-//-------------------------------------------------------
+
 always_ff @(posedge clk) begin
-    rxc_delayed <= rxc;
-    rxc_sync <= rxc_delayed;
-    rxc_prev <= rxc_sync;
+    rxc_shift[0] <= rxc;
+    rxc_shift[1] <= rxc_shift[0];
+    rxc_shift[2] <= rxc_shift[1];
 end
-always_ff @(posedge clk) begin  
-    rx_timer = (rx_timer_en) ? (rx_timer + 1) : 0;                      // Increment counter rx_timer                        
+always_ff @(posedge clk) begin
+    rx_timer = (rx_timer_en) ? (rx_timer + 1) : 0;                              // Increment counter rx_timer
 end
-always_comb start_detected = (rxc_prev == 1'b1 && rxc_sync == 1'b0);    // Catch the START bit
+always_comb start_detected = (rxc_shift[2] && (!rxc_shift[1]));    // Catch the START bit
 //-------------------------------------------------------
 // Body of Receiver
 //-------------------------------------------------------

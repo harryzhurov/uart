@@ -256,12 +256,6 @@ task automatic rx_driver();
     join_none
     wait (rx_arr_sent_index == NUMBER_OF_TESTS);
 endtask
-//-----------------------------------------------------------------------------------
-task automatic rx_check_data();
-    if (rx_data !== rx_data_buffer) begin
-        Error();
-        $display("ERROR: (rx) Data doesn`t match");
-        $display("Waited: %d, Received: %d", rx_data_buffer, rx_data);
 // Sending tx data
 
 task automatic tx_send_data(input [7:0] tx_rand_data, input int tx_send_data_delay);
@@ -299,12 +293,6 @@ task automatic receive_txc();
 
     end
 endtask
-//-----------------------------------------------------------------------------------
-task automatic rx_check_errors();
-    if(!rand_stop_bit) begin
-        if(!frame_error) begin
-            Error();
-            $display("ERROR: (rx) Frame_error");
 // Sending rxc data
 
 task automatic rx_send_data(input [8:0] rx_rand_data, input int rx_send_data_delay);
@@ -327,13 +315,6 @@ task automatic rx_send_data(input [8:0] rx_rand_data, input int rx_send_data_del
         end
     end
 endtask
-//-----------------------------------------------------------------------------------
-task automatic reset_errors();
-    @(posedge clk) rst_err = 1;
-    @(posedge clk) rst_err = 0;
-    if (overrun) begin
-        Error();
-        $display("ERROR: No reset errors occurred");
 // Writting rx received data into array
 
 task automatic receive_rx_data(input [8:0] rx_rand_data);
@@ -359,6 +340,21 @@ endtask
 task automatic tx_random();
     tx_rand_data  = $urandom_range(0, 255);
     tx_rand_delay = $urandom_range(0, 10*BIT_UART);
+//Checking data
+
+task check_data;
+    begin
+        for(int i=0; i<NUMBER_OF_TESTS; i++) begin
+            if(tx_array_received[i] != tx_array_sent[i]) begin
+                $display("INFO (tx): Sent = %d, Received = %d (num test = %d)", tx_array_sent[i], tx_array_received[i], i);
+                error();
+            end
+            if(rx_array_received[i] != rx_array_sent[i]) begin
+                $display("INFO (rx): Sent = %d, Received = %d (num test = %d)", rx_array_sent[i], rx_array_received[i], i);
+                error();
+            end
+        end
+    end
 endtask
 //-----------------------------------------------------------------------------------
 task automatic tx_send_data();
@@ -374,6 +370,13 @@ task automatic tx_send_data();
     end
     tx_check_data();
 endtask
+//--------------------------------------------
+// Reset errors
+
+task automatic reset_err();
+    begin
+        @(posedge clk) rst_err = 1;
+        @(posedge clk) rst_err = 0;
 //-----------------------------------------------------------------------------------
 task automatic accum_tx_data();                                         // Accumulate tx data for checking
     wait(!txc);
@@ -383,12 +386,6 @@ task automatic accum_tx_data();                                         // Accum
         tx_accum = {tx_accum[6:0], txc};
     end
 endtask
-//-----------------------------------------------------------------------------------
-task automatic tx_check_data();
-    wait (tx_complete); 
-    if (tx_data !== tx_accum) begin
-        Error();
-        $display("ERROR: (tx) Data doesn`t match");
     end
 endtask
 //-----------------------------------------------------------------------------------

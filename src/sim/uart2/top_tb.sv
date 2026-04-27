@@ -188,17 +188,24 @@ task automatic initialization();
     @(posedge clk) rst_err = 1;     // Reset errors
     @(posedge clk) rst_err = 0;
 endtask
-//-----------------------------------------------------------------------------------
-task automatic rx_random();
-    rx_data_buffer = rx_rand_data_invert;
-    rx_rand_data    = $urandom_range(0, 255);
-    rand_stop_bit   = $urandom_range(0,   1);
-    rx_rand_delay   = $urandom_range(0, 10*BIT_UART);
-    rx_rand_rden    = $urandom_range(0, 15*BIT_UART);
-    for(int i=0; i<8; i++) rx_rand_data_invert[i] = rx_rand_data[7-i];  // LSB to MSB for checking
+//--------------------------------------------
+// Rx_randomizer
+
+task automatic rx_randomizer();
+    begin
+    rxRandomizer rx_obj = new(rx_cfg);
+
+    rx_obj.randomize();
+
+    rx_rand_data       = {rx_obj.stop_bit,rx_obj.data[7:0]};
+    rx_send_data_delay = 0;
+    rx_rden_delay      = 0;
+    if(rx_obj.send_del)
+        rx_send_data_delay = rx_obj.send_delay;
+    if(rx_obj.wrong_rden)
+        rx_rden_delay      = rx_obj.rden_delay;
+    end
 endtask
-//-----------------------------------------------------------------------------------
-task automatic rx_send_data();
     fork
     begin
         #rx_rand_delay;

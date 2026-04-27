@@ -305,9 +305,26 @@ task automatic rx_check_errors();
         if(!frame_error) begin
             Error();
             $display("ERROR: (rx) Frame_error");
+// Sending rxc data
+
+task automatic rx_send_data(input [8:0] rx_rand_data, input int rx_send_data_delay);
+    begin
+        #(rx_send_data_delay*CLK_CYCLE);
+
+        wait(baud_pulse);
+        rxc = 0;
+
+        for(int i=0; i<WORD+1; i++) begin
+            #(UART_CYCLE);
+            rxc = rx_rand_data[i];
         end
-    //if (overrun) $display("Overrun, delay = %d", rx_rand_delay);
-    if(frame_error || overrun) reset_errors();
+        #(UART_CYCLE) rxc = 1;
+        if(!rx_rand_data[8]) #UART_CYCLE; // For correct detecting start bit
+
+        if(!rx_rand_data[8]) begin
+            if(!frame_error) $display("INFO : ! frame_error (num test = %d)", rx_arr_rcvd_index);
+            reset_err();
+        end
     end
 endtask
 //-----------------------------------------------------------------------------------
@@ -317,10 +334,25 @@ task automatic reset_errors();
     if (overrun) begin
         Error();
         $display("ERROR: No reset errors occurred");
+// Writting rx received data into array
+
+task automatic receive_rx_data(input [8:0] rx_rand_data);
+    begin
+        if(!overrun_flag) begin
+            @(posedge rx_complete) begin
+                rx_array_received[rx_arr_rcvd_index] = rx_data;
+                rx_arr_rcvd_index                    = rx_arr_rcvd_index + 1;
+            end
+        end
+        else begin
+            @(posedge overrun) begin
+                rx_array_received[rx_arr_rcvd_index] = rx_data;
+                rx_arr_rcvd_index                    = rx_arr_rcvd_index + 1;
+            end
+            overrun_flag = 0;
+        end
     end
-    if (frame_error) begin
-        Error();
-        $display("ERROR: No reset errors occurred");
+endtask
     end
 endtask
 //-----------------------------------------------------------------------------------

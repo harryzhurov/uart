@@ -1,5 +1,6 @@
 `timescale 1ns / 1ps
-module UART_TESTBENCH;
+module uart_tb();
+
 localparam NUMBER_OF_TESTS = 100  ;
 localparam WORD            = 8   ;
 localparam NUM_TEST_LEN    = 9   ;
@@ -94,6 +95,8 @@ class txRandomizer;
         send_del   dist {0 := (100 - (send_del_exist/100)), 1 := (send_del_exist/100)};
     }
 
+endclass
+//--------------------------------------------
 // Class rx random
 
 class rxRandomizer;
@@ -176,7 +179,9 @@ initial begin
     $finish;
 
 end
+
 //===================================================================================
+//--------------------------------------------
 // Tx_randomizer
 
 task automatic tx_randomizer();
@@ -209,6 +214,7 @@ task automatic rx_randomizer();
         rx_rden_delay      = rx_obj.rden_delay;
     end
 endtask
+//===================================================================================
 // TX driver
 
 task automatic tx_driver();
@@ -256,6 +262,7 @@ task automatic rx_driver();
     join_none
     wait (rx_arr_sent_index == NUMBER_OF_TESTS);
 endtask
+//===================================================================================
 // Sending tx data
 
 task automatic tx_send_data(input [7:0] tx_rand_data, input int tx_send_data_delay);
@@ -293,6 +300,7 @@ task automatic receive_txc();
 
     end
 endtask
+//--------------------------------------------
 // Sending rxc data
 
 task automatic rx_send_data(input [8:0] rx_rand_data, input int rx_send_data_delay);
@@ -315,6 +323,7 @@ task automatic rx_send_data(input [8:0] rx_rand_data, input int rx_send_data_del
         end
     end
 endtask
+//--------------------------------------------
 // Writting rx received data into array
 
 task automatic receive_rx_data(input [8:0] rx_rand_data);
@@ -334,12 +343,29 @@ task automatic receive_rx_data(input [8:0] rx_rand_data);
         end
     end
 endtask
+
+//--------------------------------------------
+// Send rx_rd with delay
+
+task automatic rx_rden_send(input int rx_rden_delay);
+    begin
+        @(posedge rx_complete) begin
+
+            if(rx_rden_delay > UART_CYCLE)
+                overrun_flag = 1;
+
+            #(rx_rden_delay*CLK_CYCLE);
+
+            if(overrun) begin
+                reset_err();
+            end
+
+            @(posedge clk) rx_rden = 1;
+            @(posedge clk) rx_rden = 0;
+        end
     end
 endtask
-//-----------------------------------------------------------------------------------
-task automatic tx_random();
-    tx_rand_data  = $urandom_range(0, 255);
-    tx_rand_delay = $urandom_range(0, 10*BIT_UART);
+//--------------------------------------------
 //Checking data
 
 task check_data;
@@ -356,19 +382,14 @@ task check_data;
         end
     end
 endtask
-//-----------------------------------------------------------------------------------
-task automatic tx_send_data();
-    #tx_rand_delay;
-    tx_data = tx_rand_data;
-    @(posedge clk) tx_wren = 1;
-    @(posedge clk) tx_wren = 0;
-    accum_tx_data();
-    wait(tx_complete);
-    if(!txc) begin
-        Error();
-        $display("ERROR: (tx): Stop bit = 0");
+//
+// Revercing data
+task automatic reverse_data(input [8:0] rx_rand_data);
+    begin
+        for(int i=0; i<WORD; i++) begin
+            rx_reversed_data[i] = rx_rand_data[7-i];
+        end
     end
-    tx_check_data();
 endtask
 //--------------------------------------------
 // Reset errors
@@ -377,15 +398,9 @@ task automatic reset_err();
     begin
         @(posedge clk) rst_err = 1;
         @(posedge clk) rst_err = 0;
-//-----------------------------------------------------------------------------------
-task automatic accum_tx_data();                                         // Accumulate tx data for checking
-    wait(!txc);
-    #(HALF_BIT_UART);
-    repeat (8) begin
-        #BIT_UART;
-        tx_accum = {tx_accum[6:0], txc};
     end
 endtask
+//--------------------------------------------
 // Initialization
 
 task init();
@@ -396,15 +411,26 @@ task init();
         tx_wren = 1'b0;
     end
 endtask
-//-----------------------------------------------------------------------------------
-task Error();
+//--------------------------------------------
+// Error
+
+task automatic error();
+
     err = err + 1;
+
+endtask
+//--------------------------------------------
+// Print test result
+
+task print_result();
+
+    if(err) $display("INFO : Test failed! ");
+    else    $display("INFO : Test succeed!");
+
 endtask
 //===================================================================================
-//-----------------------------------------------------------------------------------
-// Declaration
-//-----------------------------------------------------------------------------------
-UART_MAIN dut (
+uart    dut0
+(
     .clk         ( clk         ),
     .txc         ( txc         ),
     .rxc         ( rxc         ),
@@ -419,4 +445,6 @@ UART_MAIN dut (
     .overrun     ( overrun     ),
     .rst_err     ( rst_err     )
 );
+
 endmodule
+

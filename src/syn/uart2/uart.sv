@@ -2,7 +2,7 @@
 // ======================================================
 //  Declaration of module
 // ======================================================
-module UART_MAIN (
+module uart (
     input  logic       clk,          // 100 MHz
 
     output logic       txc,
@@ -88,7 +88,7 @@ end
 //  Generator of refference frequancy UART
 // ======================================================
 always_ff @(posedge clk) begin
-    baud_cnt <= baud_cnt + 1;
+    baud_cnt  <= baud_cnt + 1;
     baud_tick <= 0;
     if (baud_cnt == BIT_PERIOD - 1) begin
         baud_cnt  <= 0;
@@ -118,53 +118,64 @@ always_ff@(negedge clk) begin
 end
 //-------------------------------------------------------
 // Catch tx_wren
-//-------------------------------------------------------
+
 always_ff @(posedge clk) begin
+    if(init_en) begin
+        tx_empty  <= 1'b1;
+    end
     if (tx_wren) begin
         tx_buffer <= tx_data;
-        tx_empty <= 1'b0;                       // Buffer is busy
+        tx_empty  <= 1'b0;                       // Buffer is busy
+    end
+    else if(tx_empty_clr) begin
+        tx_empty  <= 1'b1;
     end
 end
 //-------------------------------------------------------
 // Body of Transmitter
-//-------------------------------------------------------
+
 always_ff @(posedge clk) begin
+    if(init_en) begin
+    end
     case (tx_state)
     TX_IDLE: begin
-        tx_complete  <= 1'b0;
-        if (tx_empty == 1'b0) begin
-            tx_shift <= tx_buffer;
-            tx_empty <= 1'b1;                   // Buffer is ready for new data
-            tx_state <= TX_START;
+        tx_stat     <= TX_STATE_HOLD;
+        tx_complete <= 1'b0;
+        if (!tx_empty) begin
+            tx_shift     <= tx_buffer;
+            tx_stat      <= TX_STATE_NEXT;
         end
     end
     TX_START: begin
+        tx_empty_clr <= 1'b1;                   // Clear tx_empty flag
         if (baud_tick) begin
             txc        <= 1'b0;                 // Start bit
             tx_bit_cnt <= 4'd0;
-            tx_state   <= TX_DATA;
+            tx_stat    <= TX_STATE_NEXT;
         end
     end
     TX_DATA: begin
+        tx_stat      <= TX_STATE_HOLD;
+        tx_empty_clr <= 1'b0;
         if (baud_tick) begin
-            txc <= tx_shift[7];                 // LSB first
+            txc        <= tx_shift[7];            // LSB first
             tx_shift   <= {tx_shift[6:0],1'b0 };  // Shift to the right
             tx_bit_cnt <= tx_bit_cnt + 1;
             if (tx_bit_cnt == LAST_BIT) begin
-                tx_state <= TX_STOP;
+                tx_stat <= TX_STATE_NEXT;
             end
         end
     end
     TX_STOP: begin
+        tx_stat <= TX_STATE_HOLD;
         if (baud_tick) begin
             txc <= 1'b1;                        // Stop bit
             if (tx_empty == 1'b0) begin         // Next data is already ready
-                tx_shift <= tx_buffer;
-                tx_empty <= 1'b1;
-                tx_state <= TX_START;
+                tx_shift     <= tx_buffer;
+                tx_stat      <= TX_STATE_START;
             end else begin
-                tx_state    <= TX_IDLE;
-                tx_complete <= 1'b1;            // Done
+                tx_complete  <= 1'b1;            // Done
+                tx_stat      <= TX_STATE_NEXT;
             end
         end
     end
@@ -204,45 +215,55 @@ end
 always_comb start_detected = (rxc_shift[2] && (!rxc_shift[1]));    // Catch the START bit
 //-------------------------------------------------------
 // Body of Receiver
-//-------------------------------------------------------
+
 always_ff @(posedge clk) begin
+    if(init_en) begin
+        rx_complete <= 1'b0;
+        overrun     <= 1'b0;
+        frame_error <= 1'b0;
+    end
     if (rx_rden) rx_complete <= 1'b0;               // Catch rx_rden
     case (rx_state)
     RX_IDLE: begin
+        rx_stat     <= RX_STATE_HOLD;
         rx_timer_en <= 0;
-        if (start_detected) rx_state <= RX_HALF;
+        if (start_detected)
+            rx_stat <= RX_STATE_NEXT;
     end
     RX_HALF: begin
+        rx_stat     <= RX_STATE_HOLD;
         rx_timer_en <= 1;
         if (rx_timer == HALF_PERIOD - 1) begin      // Middle of the bit
-            rx_state <= RX_IDLE;
-            if (rxc_sync == 1'b0) begin
-                rx_state    <= RX_DATA;
+            rx_stat <= RX_STATE_IDLE;
+            if (rxc_shift[2] == 1'b0) begin
                 rx_timer_en <= 0;
                 rx_bit_cnt  <= 4'd0;
+                rx_stat     <= RX_STATE_NEXT;
             end
         end
     end
     RX_DATA: begin
+        rx_stat     <= RX_STATE_HOLD;
         rx_timer_en <= 1;
         if (rx_timer == BIT_PERIOD - 1) begin
-            rx_shift    <= {rx_shift[6:0], rxc_sync};  // LSB first
+            rx_shift    <= {rx_shift[6:0], rxc_shift[2]};  // LSB first
             rx_bit_cnt  <= rx_bit_cnt + 1;
             rx_timer_en <= 0;
             if (rx_bit_cnt == LAST_BIT) begin
-                rx_state    <= RX_STOP;
                 rx_timer_en <= 0;
-            end 
+                rx_stat     <= RX_STATE_NEXT;
+            end
         end
     end
     RX_STOP: begin
+        rx_stat     <= RX_STATE_HOLD;
         rx_timer_en <= 1;
         if (rx_timer == BIT_PERIOD - 1) begin
-            if (!rxc_sync)   frame_error <= 1'b1;   // Checking STOP bit
-            if (rx_complete) overrun     <= 1'b1;   // Overrun
+            if (!rxc_shift[2]) frame_error <= 1'b1;   // Checking STOP bit
+            if ( rx_complete ) overrun     <= 1'b1;   // Overrun
             rx_data     <= rx_shift;
             rx_complete <= 1'b1;
-            rx_state    <= RX_IDLE;
+            rx_stat     <= RX_STATE_NEXT;
         end
     end
     endcase
@@ -251,4 +272,5 @@ always_ff @(posedge clk) begin
         overrun     <= 1'b0;
     end
 end
+//-------------------------------------------------------
 endmodule

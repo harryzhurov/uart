@@ -165,6 +165,23 @@ end
 // ======================================================
 //  Receiver (RX)
 // ======================================================
+// RX state machine manage
+
+always_ff @(negedge clk) begin
+     if(rx_stat == RX_STATE_HOLD) begin
+     end
+     else if(rx_stat == RX_STATE_NEXT) begin
+        case(rx_state)
+            RX_IDLE : rx_state <= RX_HALF;
+            RX_HALF : rx_state <= RX_DATA;
+            RX_DATA : rx_state <= RX_STOP;
+            RX_STOP : rx_state <= RX_IDLE;
+        endcase
+     end
+     else if (rx_stat == RX_STATE_IDLE) begin
+        rx_state <= RX_IDLE;
+     end
+end
 //-------------------------------------------------------
 // Synchronization
 //-------------------------------------------------------

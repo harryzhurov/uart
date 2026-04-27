@@ -90,6 +90,24 @@ end
 // ======================================================
 //  Transmitter (TX)
 // ======================================================
+
+// TX state machine manager
+
+always_ff@(negedge clk) begin
+    if(tx_stat == TX_STATE_HOLD) begin
+    end
+    else if(tx_stat == TX_STATE_NEXT) begin
+       case(tx_state)
+        TX_IDLE  : tx_state <= TX_START;
+        TX_START : tx_state <= TX_DATA;
+        TX_DATA  : tx_state <= TX_STOP;
+        TX_STOP  : tx_state <= TX_IDLE;
+       endcase
+    end
+    else if (tx_stat == TX_STATE_START) begin
+       tx_state <= TX_START;
+    end
+end
 //-------------------------------------------------------
 // Catch tx_wren
 //-------------------------------------------------------

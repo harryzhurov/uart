@@ -229,23 +229,32 @@ task automatic tx_driver();
     join_none
     wait (tx_arr_rcvd_index == NUMBER_OF_TESTS);
 endtask
+//--------------------------------------------
+// RX driver
+
+task automatic rx_driver();
+    fork
+    begin
+        repeat (NUMBER_OF_TESTS) begin
+            rx_randomizer();
+            reverse_data(rx_rand_data);
+            rx_send_data(rx_rand_data,rx_send_data_delay);
+            rx_array_sent[rx_arr_sent_index] = rx_reversed_data;
+            rx_arr_sent_index                = rx_arr_sent_index + 1;
         end
-        #BIT_UART;
-        rxc = rand_stop_bit;                                            // STOP_BIT (0 or 1)
-        #(BIT_UART);
-        wait(rx_complete);
-        rx_check_errors();
-        rxc = 1;                                                        // Return rxc to high 
     end
     begin
-        #rx_rand_rden;                                                  // Random delay for checking overrun
-        @(posedge clk) rx_rden = 1'b1;
-        @(posedge clk) rx_rden = 1'b0;
+        repeat (NUMBER_OF_TESTS) begin
+            receive_rx_data(rx_rand_data);
+        end
     end
     begin
-        rx_check_data();
+        repeat (NUMBER_OF_TESTS) begin
+            rx_rden_send(rx_rden_delay);
+        end
     end
-    join 
+    join_none
+    wait (rx_arr_sent_index == NUMBER_OF_TESTS);
 endtask
 //-----------------------------------------------------------------------------------
 task automatic rx_check_data();

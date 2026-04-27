@@ -386,6 +386,14 @@ task automatic accum_tx_data();                                         // Accum
         tx_accum = {tx_accum[6:0], txc};
     end
 endtask
+// Initialization
+
+task init();
+    begin
+        rxc     = 1'b1;
+        rx_rden = 1'b0;
+        rst_err = 1'b0;
+        tx_wren = 1'b0;
     end
 endtask
 //-----------------------------------------------------------------------------------

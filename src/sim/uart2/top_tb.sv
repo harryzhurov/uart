@@ -1,34 +1,74 @@
 `timescale 1ns / 1ps
 module UART_TESTBENCH;
-//===================================================================================
-logic       clk;
-logic       txc;
-logic       rxc;
-logic [7:0] tx_data;
-logic       tx_wren;
-logic [7:0] rx_data;
-logic       rx_rden;
-logic       rst_err;
-logic       tx_empty;
-logic       tx_complete;
-logic       rx_complete;
-logic       frame_error;
-logic       overrun;
-//-----------------------------------------------------------------------------------
-integer     rx_rand_delay;
-integer     rx_rand_rden;
-integer     tx_rand_delay;
-integer     err = 0;
-logic [7:0] rx_rand_data_invert;
-logic [7:0] rx_data_buffer;
-logic [7:0] rx_rand_data;
-logic [7:0] tx_rand_data;
-logic [7:0] tx_accum;
-logic       rand_stop_bit;
+localparam NUMBER_OF_TESTS = 100  ;
+localparam WORD            = 8   ;
+localparam NUM_TEST_LEN    = 9   ;
 
-integer     BIT_UART = 8680;
-integer     HALF_BIT_UART = BIT_UART/2;
-integer     NUMBER_OF_TESTS = 20;
+localparam CLK_FREQ       = 100_000_000;
+localparam BAUD_RATE      = 115200;
+localparam BIT_PERIOD     = CLK_FREQ / BAUD_RATE;
+localparam HALF_PERIOD    = BIT_PERIOD / 2;
+localparam CLK_CYCLE      = 1_000_000_000/CLK_FREQ  ;
+localparam UART_CYCLE     = BIT_PERIOD*CLK_CYCLE;
+//---------------------------------------------
+typedef struct {
+    int zero_data        = 100;  // probability of data = 2'h00 (1%)
+    int send_del_exist   = 1000;  // probobility of delay existance before data sending (10%)
+    int send_del_dist    = 5000; // in range [0:5000] clk cycles
+    }
+    tx_random_t;
+    tx_random_t tx_cfg;
+
+typedef struct {
+    int wrong_stop_exist = 200;  // probability of stop bit = 0 (2%)
+    int send_del_exist   = 200;  // probability of delay existance before data sending (2%)
+    int send_del_dist    = 10000;// in range [0:10000] clk cycles
+    int rden_del_exist   = 1000;  // probability of delay existance before rx_rden flag sending (10%)
+    int rden_del_dist    = 10000;// in range [0:10000] clk cycles
+    int zero_data        = 500;  // probability of data = 2'h00 (5%)
+    }
+    rx_random_t;
+    rx_random_t rx_cfg;
+//---------------------------------------------
+// UART interface
+
+logic            clk;
+logic [WORD-1:0] tx_data;
+logic [WORD-1:0] rx_data;
+logic            txc;
+logic            rxc;
+logic            tx_wren;
+logic            rx_rden;
+logic            rst_err;
+logic            tx_empty;
+logic            tx_complete;
+logic            rx_complete;
+logic            frame_error;
+logic            overrun;
+//---------------------------------------------
+// Declaration internal signals
+
+logic [ WORD-1:0] tx_array_sent     [NUMBER_OF_TESTS-1:0] = '{default: 0};
+logic [ WORD-1:0] rx_array_sent     [NUMBER_OF_TESTS-1:0] = '{default: 0};
+logic [ WORD-1:0] tx_array_received [NUMBER_OF_TESTS-1:0] = '{default: 0};
+logic [ WORD-1:0] rx_array_received [NUMBER_OF_TESTS-1:0] = '{default: 0};
+logic [ WORD-1:0] tx_rand_data;
+logic [ WORD-1:0] rx_reversed_data;
+logic [  WORD:0 ] rx_rand_data;
+logic [    7:0  ] tx_data_shift;
+
+logic             overrun_flag       = 0;
+logic             baud_pulse         = 0;
+
+int               rx_send_data_delay = 0;
+int               rx_rden_delay      = 0;
+int               tx_send_data_delay = 0;
+int               tx_arr_sent_index  = 0;
+int               tx_arr_rcvd_index  = 0;
+int               rx_arr_sent_index  = 0;
+int               rx_arr_rcvd_index  = 0;
+int               err                = 0;
+//===================================================================================
 //===================================================================================
 //-----------------------------------------------------------------------------------
 // Generator 100 MHz

@@ -22,6 +22,9 @@ module UART_MAIN (
 // ======================================================
 //  Declaration of signals
 // ======================================================
+logic [2:0] rxc_shift;
+logic [1:0] tx_stat;
+logic [1:0] rx_stat;
 logic [9:0] baud_cnt = 0;
 logic [7:0] tx_buffer;
 logic [7:0] tx_shift;
@@ -29,45 +32,50 @@ logic [3:0] tx_bit_cnt;
 logic [9:0] rx_timer;
 logic [3:0] rx_bit_cnt;
 logic [7:0] rx_shift;
-logic [7:0] rx_data_reg;
 logic       rx_timer_en;
 logic       baud_tick;
-logic       tx_empty_reg;
-logic       tx_complete_reg;
 logic       rxc_delayed;
 logic       rxc_sync;
 logic       rxc_prev;
 logic       start_detected;
-logic       rx_complete_reg = 1'b0;
-logic       frame_error_reg = 1'b0;
-logic       overrun_reg     = 1'b0;
+logic       tx_empty_clr;
+
+logic [1:0] init    = 0;
+logic       init_en;
 //-------------------------------------------------------
-localparam CLK_FREQ    = 100_000_000;
-localparam BAUD_RATE   = 115200;
-localparam BIT_PERIOD  = CLK_FREQ / BAUD_RATE; // 868
-localparam HALF_PERIOD = BIT_PERIOD / 2;       // 434
-localparam LAST_BIT    = 7;
+localparam CLK_FREQ       = 100_000_000;
+localparam BAUD_RATE      = 115200;
+localparam BIT_PERIOD     = CLK_FREQ / BAUD_RATE; // 868
+localparam HALF_PERIOD    = BIT_PERIOD / 2;       // 434
+localparam LAST_BIT       = 7;
+localparam TX_STATE_HOLD  = 0;
+localparam TX_STATE_NEXT  = 1;
+localparam TX_STATE_START = 2;
+localparam RX_STATE_HOLD  = 0;
+localparam RX_STATE_NEXT  = 1;
+localparam RX_STATE_IDLE  = 2;
 //-------------------------------------------------------
-typedef enum logic [1:0] 
+typedef enum logic [1:0]
 {
     TX_IDLE,
     TX_START,
     TX_DATA,
     TX_STOP
-} 
+}
 tx_state_t;
+
 tx_state_t tx_state = TX_IDLE;
 
-typedef enum logic [1:0] 
+typedef enum logic [1:0]
 {
     RX_IDLE,
     RX_HALF,
     RX_DATA,
     RX_STOP
-} 
+}
 rx_state_t;
+
 rx_state_t rx_state = RX_IDLE;
-//-------------------------------------------------------
 // ======================================================
 //  Generator of refference frequancy UART
 // ======================================================

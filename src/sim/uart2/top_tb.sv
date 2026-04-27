@@ -187,6 +187,19 @@ task automatic initialization();
     rxc = 1;
     @(posedge clk) rst_err = 1;     // Reset errors
     @(posedge clk) rst_err = 0;
+// Tx_randomizer
+
+task automatic tx_randomizer();
+    begin
+    txRandomizer tx_obj = new(tx_cfg);
+
+    tx_obj.randomize();
+
+    tx_rand_data       = tx_obj.data;
+    tx_send_data_delay = 0;
+    if(tx_obj.send_del)
+        tx_send_data_delay = tx_obj.data_delay;
+    end
 endtask
 //--------------------------------------------
 // Rx_randomizer

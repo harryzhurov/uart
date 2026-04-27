@@ -177,16 +177,6 @@ initial begin
 
 end
 //===================================================================================
-//-----------------------------------------------------------------------------------
-// Tasks
-//-----------------------------------------------------------------------------------
-task automatic initialization();
-    tx_data = 8'h00;
-    tx_wren = 0;
-    rx_rden = 0;
-    rxc = 1;
-    @(posedge clk) rst_err = 1;     // Reset errors
-    @(posedge clk) rst_err = 0;
 // Tx_randomizer
 
 task automatic tx_randomizer();

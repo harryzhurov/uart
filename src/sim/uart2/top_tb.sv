@@ -262,6 +262,41 @@ task automatic rx_check_data();
         Error();
         $display("ERROR: (rx) Data doesn`t match");
         $display("Waited: %d, Received: %d", rx_data_buffer, rx_data);
+// Sending tx data
+
+task automatic tx_send_data(input [7:0] tx_rand_data, input int tx_send_data_delay);
+    begin
+        #(tx_send_data_delay*CLK_CYCLE);
+
+         if(tx_empty) tx_data = tx_rand_data;
+         else begin
+            wait(tx_empty);
+            tx_data = tx_rand_data;
+         end
+
+        @(posedge clk) tx_wren = 1;
+        @(posedge clk) tx_wren = 0;
+
+        wait(tx_complete);
+
+    end
+endtask
+//--------------------------------------------
+// Writting tx received data into array
+
+task automatic receive_txc();
+    begin
+        wait(!txc);
+        #(UART_CYCLE+UART_CYCLE/2);
+
+        for(int i=0; i<WORD; i++) begin
+            tx_data_shift = {tx_data_shift[6:0],txc};
+            #UART_CYCLE;
+        end
+
+        tx_array_received[tx_arr_rcvd_index] = tx_data_shift;
+        tx_arr_rcvd_index                    = tx_arr_rcvd_index + 1;
+
     end
 endtask
 //-----------------------------------------------------------------------------------

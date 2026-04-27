@@ -151,27 +151,30 @@ initial begin
     end
 end
 //--------------------------------------------
-// Test part
-//-----------------------------------------------------------------------------------
+// Body of tester
+
 initial begin
-    initialization();
+
+    init();
+
     fork
+
     begin
         repeat (NUMBER_OF_TESTS) begin
-            rx_random();
-            rx_send_data();
+            tx_driver();
         end
     end
     begin
-        repeat (NUMBER_OF_TESTS) begin
-            tx_random();
-            tx_send_data();
-        end
-    end 
+        rx_driver();
+    end
+
     join
-    if(err) $display("Test completed: FAILED ");
-    else    $display("Test completed: SUCCESS");
+
+    check_data();
+    print_result();
+
     $finish;
+
 end
 //===================================================================================
 //-----------------------------------------------------------------------------------

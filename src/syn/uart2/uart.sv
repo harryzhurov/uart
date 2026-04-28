@@ -22,17 +22,17 @@ module uart (
 // ======================================================
 //  Declaration of signals
 // ======================================================
-logic [2:0] rxc_shift;
-logic [1:0] tx_stat;
-logic [1:0] rx_stat;
-logic [9:0] baud_cnt = 0;
-logic [7:0] tx_buffer;
-logic [7:0] tx_shift;
-logic [3:0] tx_bit_cnt;
-logic [9:0] rx_timer;
-logic [3:0] rx_bit_cnt;
-logic [7:0] rx_shift;
-logic       rx_timer_en;
+logic [2:0] rxc_shift       = 0;
+logic [1:0] tx_stat         = 0;        
+logic [1:0] rx_stat         = 0;
+logic [9:0] baud_cnt        = 0;
+logic [7:0] tx_buffer       = 0;
+logic [7:0] tx_shift        = 0;
+logic [3:0] tx_bit_cnt      = 0;
+logic [9:0] rx_timer        = 0;
+logic [3:0] rx_bit_cnt      = 0;
+logic [7:0] rx_shift        = 0;
+logic       rx_timer_en     = 0;
 logic       baud_tick;
 logic       rxc_delayed;
 logic       rxc_sync;

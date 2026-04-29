@@ -109,7 +109,7 @@ end
 //
 //    Instances
 //
-UART_MAIN dut
+uart dut
 (
     .clk         ( clk         ),
     .txc         ( txc         ),

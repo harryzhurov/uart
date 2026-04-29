@@ -30,6 +30,13 @@ typedef struct {
     }
     rx_random_t;
     rx_random_t rx_cfg;
+
+typedef enum 
+{ 
+    TX, 
+    RX 
+} 
+direction_t;
 //---------------------------------------------
 // UART interface
 
@@ -69,6 +76,141 @@ int               tx_arr_rcvd_index  = 0;
 int               rx_arr_sent_index  = 0;
 int               rx_arr_rcvd_index  = 0;
 int               err                = 0;
+//===================================================================================
+// Class Generator
+class Agent;
+    //------------------------------------------------------
+    class Generator;
+        
+        //------------------------------------------------------
+        class TxGen;
+        
+            static int     count = 0;
+            int            id;
+            
+            int            zero_data;
+            int            send_del_exist;
+            int            send_del_dist;
+        
+            rand bit       send_del;
+            rand bit [7:0] data;
+            rand int       data_delay;
+        
+            function new(tx_random_t tx_cfg);
+                
+                id             = count++;
+                
+                zero_data      = tx_cfg.zero_data;
+                send_del_exist = tx_cfg.send_del_exist;
+                send_del_dist  = tx_cfg.send_del_dist;
+                
+            endfunction
+        
+            constraint cst
+            {
+                data       inside {[0:255          ]};
+                data_delay inside {[0:send_del_dist]};
+        
+                send_del   dist   {0 := (100 - (send_del_exist/100)), 1 := (send_del_exist/100)};
+            }
+        
+        endclass
+        //------------------------------------------------------ 
+        class RxGen;
+        
+            static int     count = 0;
+            int            id;
+        
+            int            wrong_stop_exist;
+            int            send_del_exist;
+            int            send_del_dist;
+            int            rden_del_exist;
+            int            rden_del_dist;
+            int            zero_data;
+        
+            rand bit       stop_bit;
+            rand bit       send_del;
+            rand bit       wrong_rden;
+            rand int       send_delay;
+            rand int       rden_delay;
+            rand bit [7:0] data;
+        
+            function new(rx_random_t rx_cfg);
+                
+                id               = count++;
+                wrong_stop_exist = rx_cfg.wrong_stop_exist;
+                send_del_exist   = rx_cfg.send_del_exist;
+                send_del_dist    = rx_cfg.send_del_dist;
+                rden_del_exist   = rx_cfg.rden_del_exist;
+                rden_del_dist    = rx_cfg.rden_del_dist;
+                zero_data        = rx_cfg.zero_data;
+                
+            endfunction
+        
+            constraint cst
+            {
+                data       inside {[0:255          ]};
+                rden_delay inside {[0:rden_del_dist]};
+                send_delay inside {[0:send_del_dist]};
+        
+                stop_bit    dist  {0 := (wrong_stop_exist/100)        , 1 := (100 - wrong_stop_exist/100) };
+                send_del    dist  {0 := (100 - (send_del_exist/100))  , 1 := (send_del_exist/100)         };
+                wrong_rden  dist  {0 := (100 - (rden_del_exist/100))  , 1 := (rden_del_exist/100)         };
+                data        dist  {0 := (zero_data/100)               , [1:255] := (100 - (zero_data/100))};
+            }
+        
+        endclass
+        //------------------------------------------------------
+        
+        protected TxGen tx_gen;
+        RxGen rx_gen;
+        
+        function new(direction_t direction);
+            if (direction == "TX") begin
+              tx_gen = new(tx_cfg);
+              tx_gen.randomize();
+            end 
+            else if (direction == "RX") begin
+              rx_gen = new(rx_cfg);
+              rx_gen.randomize();
+            end
+        endfunction
+        
+    endclass
+    //------------------------------------------------------
+    class Driver;
+        
+        task automatic run_tx();
+        
+            logic [7:0] transaction;
+            
+            for(int i=0; i<NUMBER_OF_TESTS; i++) begin
+            
+                Generator gen_tx = new(TX);
+                
+                transaction = gen_tx.tx_gen.data;
+                
+            end
+            
+        endtask
+        
+        task automatic run_rx();
+        
+            logic [7:0] transaction;
+            
+            for(int i=0; i<NUMBER_OF_TESTS; i++) begin
+            
+                Generator gen_rx = new(RX);
+                
+                transaction = gen_rx.rx_gen.data;
+                
+            end
+            
+        endtask
+    
+    endclass 
+endclass
+
 //===================================================================================
 // Class tx random
 

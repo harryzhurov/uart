@@ -553,6 +553,14 @@ endclass
 //--------------------------------------------
 // Initialization
 
+task automatic init();
+    
+    rxc     = 1;
+    tx_data = 8'h00;
+    tx_wren = 0;
+    rx_rden = 0;
+    rst_err = 0;
+    
 endtask
 //--------------------------------------------
 // Test

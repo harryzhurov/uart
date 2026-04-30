@@ -11,14 +11,15 @@ localparam BIT_PERIOD     = CLK_FREQ / BAUD_RATE;
 localparam HALF_PERIOD    = BIT_PERIOD / 2;
 localparam CLK_CYCLE      = 1_000_000_000/CLK_FREQ  ;
 localparam UART_CYCLE     = BIT_PERIOD*CLK_CYCLE;
-//---------------------------------------------
-typedef struct {
+
+typedef struct 
+{
     int zero_data        = 100;  // probability of data = 2'h00 (1%)
     int send_del_exist   = 1000;  // probobility of delay existance before data sending (10%)
     int send_del_dist    = 5000; // in range [0:5000] clk cycles
-    }
-    tx_random_t;
-    tx_random_t tx_cfg;
+}
+tx_random_t;
+tx_random_t tx_cfg;
 
 typedef struct {
     int wrong_stop_exist = 200;  // probability of stop bit = 0 (2%)

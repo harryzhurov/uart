@@ -1,5 +1,7 @@
 `timescale 1ns / 1ps
 module uart_tb();
+//===================================================================================
+// Parameters
 
 localparam NUMBER_OF_TESTS = 100  ;
 localparam WORD            = 8   ;
@@ -31,6 +33,9 @@ typedef struct {
     }
     rx_random_t;
     rx_random_t rx_cfg;
+//===================================================================================
+// Signals
+
 
 typedef enum 
 { 
@@ -407,6 +412,8 @@ endtask
 
 //--------------------------------------------
 // Send rx_rd with delay
+//===================================================================================
+// Class Environment
 
 task automatic rx_rden_send(input int rx_rden_delay);
     begin
@@ -416,6 +423,7 @@ task automatic rx_rden_send(input int rx_rden_delay);
                 overrun_flag = 1;
 
             #(rx_rden_delay*CLK_CYCLE);
+//===================================================================================
 
             if(overrun) begin
                 reset_err();

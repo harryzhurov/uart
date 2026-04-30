@@ -543,13 +543,28 @@ class Environment;
     endtask
 
 endclass
+    
 //===================================================================================
 
+Environment env;
 
 //--------------------------------------------
-//--------------------------------------------
+// Generator 100 MHz
 
+initial begin
+    clk = 0;
+    forever #(CLK_CYCLE/2) clk = ~clk;
+end
+//--------------------------------------------
+// Baud pulse generator
+
+initial begin
+    baud_pulse = 0;
+    forever begin
+        #(UART_CYCLE - CLK_CYCLE) baud_pulse = 1;
+        #(CLK_CYCLE)              baud_pulse = 0;
     end
+end
 //--------------------------------------------
 // Initialization
 

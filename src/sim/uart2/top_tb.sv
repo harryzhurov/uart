@@ -482,8 +482,67 @@ endclass
 //===================================================================================
 // Class Environment
 
+class Environment;
 
+    Generator   gen;
+    Driver      drv;
+    Monitor     mnt;
+    Scoreboard  scb;
+    
+    mailbox gen2drv_tx;
+    mailbox gen2drv_rx;
+    mailbox gen2scb_tx;
+    mailbox gen2scb_rx;
+    mailbox mnt2scb_tx;
+    mailbox mnt2scb_rx;
+    
+    function new();
+    
+        gen2drv_tx = new();
+        gen2drv_rx = new();
+        gen2scb_tx = new();
+        gen2scb_rx = new();
+        mnt2scb_tx = new();
+        mnt2scb_rx = new();
+        
+        gen = new(gen2drv_tx,gen2drv_rx,gen2scb_tx,gen2scb_rx);
+        drv = new(gen2drv_tx,gen2drv_rx);
+        mnt = new(mnt2scb_tx,mnt2scb_rx);
+        scb = new(gen2scb_tx,gen2scb_rx,mnt2scb_tx,mnt2scb_rx);
+        
+    endfunction;
+    
+    task automatic run();
+        
+        fork
+        
+            gen.run();
+            drv.run();
+            mnt.run();
+            scb.run();
+            
+        join_any
+        
+        run_wait_end();
+        
+        $finish;
+        
+    endtask
+    
+    task automatic run_wait_end();
+    
+        fork
+            
+            wait(scb.num_trans_tx == NUMBER_OF_TESTS);
+            wait(mnt.num_trans_tx == NUMBER_OF_TESTS);
+            wait(scb.num_trans_rx == NUMBER_OF_TESTS);
+            wait(mnt.num_trans_rx == NUMBER_OF_TESTS);
+        
+        join
+        
+    endtask
 
+endclass
 //===================================================================================
 
 

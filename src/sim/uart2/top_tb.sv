@@ -1,4 +1,5 @@
 `timescale 1ns / 1ps
+
 module uart_tb();
 //===================================================================================
 // Parameters
@@ -414,16 +415,70 @@ class Monitor;
         end
         else begin
             @(posedge overrun) begin
-                rx_array_received[rx_arr_rcvd_index] = rx_data;
-                rx_arr_rcvd_index                    = rx_arr_rcvd_index + 1;
+                mnt2scb_rx.put(rx_data);
             end
             overrun_flag = 0;
         end
-    end
-endtask
+        
+        num_trans_rx++;
+    
+    endtask
+    
+    task automatic rx_rden_send();
+        begin
+            @(posedge rx_complete) begin
+    
+//                if( > UART_CYCLE)
+//                    overrun_flag = 1;
+    
+                #(rx_rden_delay*CLK_CYCLE);
+    
+                if(overrun) begin
+                    reset_err();
+                end
+    
+                @(posedge clk) rx_rden = 1;
+                @(posedge clk) rx_rden = 0;
+            end
+        end
+        
+    endtask
+    
+    task automatic receive_tx();
+        begin
+            wait(!txc);
+            #(UART_CYCLE+UART_CYCLE/2);
+    
+            for(int i=0; i<WORD; i++) begin
+                tx_data_shift = {tx_data_shift[6:0],txc};
+                #UART_CYCLE;
+            end
+    
+            mnt2scb_tx.put(tx_data_shift);
+            
+            num_trans_tx++;
+    
+        end
+    endtask
+    
+    task automatic reset_err();
+    
+        @(posedge clk) rst_err = 1;
+        @(posedge clk) rst_err = 0;
+        
+    endtask
+    
+    task automatic run();
+    
+        fork
+        
+            receive_rx();
+            rx_rden_send();
+            
+        join        
+    endtask
 
-//--------------------------------------------
-// Send rx_rd with delay
+endclass 
 //===================================================================================
 // Class Environment
 

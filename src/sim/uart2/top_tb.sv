@@ -23,26 +23,38 @@ typedef struct
 tx_random_t;
 tx_random_t tx_cfg;
 
-typedef struct {
+typedef struct 
+{
     int wrong_stop_exist = 200;  // probability of stop bit = 0 (2%)
     int send_del_exist   = 200;  // probability of delay existance before data sending (2%)
     int send_del_dist    = 10000;// in range [0:10000] clk cycles
     int rden_del_exist   = 1000;  // probability of delay existance before rx_rden flag sending (10%)
     int rden_del_dist    = 10000;// in range [0:10000] clk cycles
     int zero_data        = 500;  // probability of data = 2'h00 (5%)
-    }
-    rx_random_t;
-    rx_random_t rx_cfg;
+}
+rx_random_t;
+rx_random_t rx_cfg;
 //===================================================================================
 // Signals
 
-
-typedef enum 
+typedef struct 
 { 
-    TX, 
-    RX 
+    logic [7:0] data;
+    logic       complete;
+    logic       empty;   
 } 
-direction_t;
+tx_logic_t;
+tx_logic_t tx_log;
+
+typedef struct 
+{ 
+    logic [7:0] data;
+    logic       complete;
+    logic       frame;  
+    logic       overrun; 
+} 
+rx_logic_t;
+rx_logic_t rx_log;
 //---------------------------------------------
 // UART interface
 

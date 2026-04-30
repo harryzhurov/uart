@@ -482,88 +482,24 @@ endclass
 //===================================================================================
 // Class Environment
 
-task automatic rx_rden_send(input int rx_rden_delay);
-    begin
-        @(posedge rx_complete) begin
 
-            if(rx_rden_delay > UART_CYCLE)
-                overrun_flag = 1;
 
-            #(rx_rden_delay*CLK_CYCLE);
 //===================================================================================
 
-            if(overrun) begin
-                reset_err();
-            end
 
-            @(posedge clk) rx_rden = 1;
-            @(posedge clk) rx_rden = 0;
-        end
-    end
-endtask
 //--------------------------------------------
-//Checking data
-
-task check_data;
-    begin
-        for(int i=0; i<NUMBER_OF_TESTS; i++) begin
-            if(tx_array_received[i] != tx_array_sent[i]) begin
-                $display("INFO (tx): Sent = %d, Received = %d (num test = %d)", tx_array_sent[i], tx_array_received[i], i);
-                error();
-            end
-            if(rx_array_received[i] != rx_array_sent[i]) begin
-                $display("INFO (rx): Sent = %d, Received = %d (num test = %d)", rx_array_sent[i], rx_array_received[i], i);
-                error();
-            end
-        end
-    end
-endtask
-//
-// Revercing data
-task automatic reverse_data(input [8:0] rx_rand_data);
-    begin
-        for(int i=0; i<WORD; i++) begin
-            rx_reversed_data[i] = rx_rand_data[7-i];
-        end
-    end
-endtask
 //--------------------------------------------
-// Reset errors
 
-task automatic reset_err();
-    begin
-        @(posedge clk) rst_err = 1;
-        @(posedge clk) rst_err = 0;
     end
-endtask
 //--------------------------------------------
 // Initialization
 
-task init();
-    begin
-        rxc     = 1'b1;
-        rx_rden = 1'b0;
-        rst_err = 1'b0;
-        tx_wren = 1'b0;
-    end
 endtask
 //--------------------------------------------
-// Error
 
-task automatic error();
 
-    err = err + 1;
 
-endtask
-//--------------------------------------------
-// Print test result
 
-task print_result();
-
-    if(err) $display("INFO : Test failed! ");
-    else    $display("INFO : Test succeed!");
-
-endtask
 //===================================================================================
 uart    dut0
 (

@@ -243,7 +243,8 @@ class Driver;
     mailbox #(tx_trans_t) gen2drv_tx;
     mailbox #(rx_trans_t) gen2drv_rx;
     
-    function new(mailbox gen2drv_tx, mailbox gen2drv_rx);
+    function new(mailbox #(tx_trans_t) gen2drv_tx,
+                 mailbox #(rx_trans_t) gen2drv_rx);
     
         this.gen2drv_tx = gen2drv_tx;
         this.gen2drv_rx = gen2drv_rx;

@@ -324,6 +324,7 @@ class Scoreboard;
     
     logic [7:0] tx_data_shift;
     logic [7:0] rx_data_rcvd;
+    logic [7:0] rx_reversed_data;
     
     tx_trans_t tx_tr_scb;
     rx_trans_t rx_tr_scb;

@@ -423,6 +423,7 @@ class Monitor;
     
         this.mnt2scb_tx = mnt2scb_tx;
         this.mnt2scb_rx = mnt2scb_rx;
+        this.gen2mnt_rx = gen2mnt_rx;
     
     endfunction 
     

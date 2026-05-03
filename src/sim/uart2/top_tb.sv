@@ -413,8 +413,9 @@ class Monitor;
     logic [7:0] tx_data_mnt;
     logic [7:0] rx_data_mnt;
 
-    mailbox     mnt2scb_tx;
-    mailbox     mnt2scb_rx;
+    mailbox #(logic [7:0]) mnt2scb_tx;
+    mailbox #(logic [7:0]) mnt2scb_rx;
+    mailbox #(   int     ) gen2mnt_rx;
     
     function new(mailbox mnt2scb_tx, mailbox mnt2scb_rx);
     

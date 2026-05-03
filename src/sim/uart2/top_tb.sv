@@ -17,21 +17,21 @@ localparam UART_CYCLE     = BIT_PERIOD*CLK_CYCLE;
 
 typedef struct 
 {
-    int zero_data        = 100;  // probability of data = 2'h00 (1%)
-    int send_del_exist   = 1000;  // probobility of delay existance before data sending (10%)
-    int send_del_dist    = 5000; // in range [0:5000] clk cycles
+    int zero_data        = 100;     // probability of data = 2'h00 (1%)
+    int send_del_exist   = 1000;    // probobility of delay existance before data sending (10%)
+    int send_del_dist    = 5000;    // in range [0:5000] clk cycles
 }
 tx_random_t;
 tx_random_t tx_cfg;
 
 typedef struct 
 {
-    int wrong_stop_exist = 200;  // probability of stop bit = 0 (2%)
-    int send_del_exist   = 200;  // probability of delay existance before data sending (2%)
-    int send_del_dist    = 10000;// in range [0:10000] clk cycles
-    int rden_del_exist   = 1000;  // probability of delay existance before rx_rden flag sending (10%)
-    int rden_del_dist    = 10000;// in range [0:10000] clk cycles
-    int zero_data        = 500;  // probability of data = 2'h00 (5%)
+    int wrong_stop_exist = 200;     // probability of stop bit = 0 (2%)
+    int send_del_exist   = 200;     // probability of delay existance before data sending (2%)
+    int send_del_dist    = 10000;   // in range [0:10000] clk cycles
+    int rden_del_exist   = 1000;    // probability of delay existance before rx_rden flag sending (10%)
+    int rden_del_dist    = 15000;   // in range [0:15000] clk cycles
+    int zero_data        = 500;     // probability of data = 2'h00 (5%)
 }
 rx_random_t;
 rx_random_t rx_cfg;

@@ -50,12 +50,12 @@ tx_logic_t tx_log;
 typedef struct 
 { 
     logic [7:0] data;
-    logic       complete;
-    logic       frame;  
-    logic       overrun; 
+    int         rden_delay;
+    int         send_delay;
+    int         id;
+    bit         stop_bit;
 } 
-rx_logic_t;
-rx_logic_t rx_log;
+rx_trans_t;
 //---------------------------------------------
 // UART interface
 

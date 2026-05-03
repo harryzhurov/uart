@@ -606,6 +606,8 @@ task automatic init();
     rx_rden = 0;
     rst_err = 0;
     
+    #UART_CYCLE;
+    
 endtask
 //--------------------------------------------
 // Test

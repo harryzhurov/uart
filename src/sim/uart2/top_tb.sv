@@ -206,10 +206,21 @@ class Generator;
             if(!tx_trans.randomize()) $display("INFO: ERROR: tx_trans_randomization failed!");
             if(!rx_trans.randomize()) $display("INFO: ERROR: rx_trans_randomization failed!");
             
-            gen2drv_tx.put(tx_trans);
-            gen2drv_rx.put(rx_trans);
-            gen2scb_tx.put(tx_trans);
-            gen2scb_rx.put(rx_trans);
+            tx_tr_gen.data       = tx_trans.data;
+            tx_tr_gen.data_delay = tx_trans.data_delay;
+            tx_tr_gen.id         = tx_trans.id;
+            
+            rx_tr_gen.data       = rx_trans.data;
+            rx_tr_gen.send_delay = rx_trans.send_delay;
+            rx_tr_gen.rden_delay = rx_trans.rden_delay;
+            rx_tr_gen.stop_bit   = rx_trans.stop_bit;
+            rx_tr_gen.id         = tx_trans.id;
+            
+            
+            gen2drv_tx.put(     tx_tr_gen       );
+            gen2drv_rx.put(     rx_tr_gen       );
+            gen2scb_tx.put(     tx_tr_gen       );
+            gen2scb_rx.put(     rx_tr_gen       );
             gen2mnt_rx.put(rx_tr_gen.rden_delay );
             
         end

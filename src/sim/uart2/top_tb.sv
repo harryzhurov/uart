@@ -169,13 +169,22 @@ class Generator;
     Tx_trans tx_trans;
     Rx_trans rx_trans;
     
-    mailbox gen2drv_tx;
-    mailbox gen2drv_rx;
+    tx_trans_t tx_tr_gen;
+    rx_trans_t rx_tr_gen;
     
-    mailbox gen2scb_tx;
-    mailbox gen2scb_rx;
+    mailbox #(tx_trans_t) gen2drv_tx;
+    mailbox #(rx_trans_t) gen2drv_rx;
     
-    function new(mailbox gen2drv_tx,mailbox gen2drv_rx,mailbox gen2scb_tx,mailbox gen2scb_rx);
+    mailbox #(tx_trans_t) gen2scb_tx;
+    mailbox #(rx_trans_t) gen2scb_rx;
+    
+    mailbox #(   int    ) gen2mnt_rx;
+    
+    function new(mailbox #(tx_trans_t) gen2drv_tx,
+                 mailbox #(rx_trans_t) gen2drv_rx,
+                 mailbox #(tx_trans_t) gen2scb_tx,
+                 mailbox #(rx_trans_t) gen2scb_rx,
+                 mailbox #(   int    ) gen2mnt_rx);
     
         this.gen2drv_tx = gen2drv_tx;
         this.gen2drv_rx = gen2drv_rx;

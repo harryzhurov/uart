@@ -324,12 +324,14 @@ class Scoreboard;
     
     logic [7:0] tx_data_shift;
     logic [7:0] rx_data_rcvd;
-
-    mailbox   gen2scb_tx;
-    mailbox   gen2scb_rx;
-    mailbox   mnt2scb_tx;
-    mailbox   mnt2scb_rx;
     
+    tx_trans_t tx_tr_scb;
+    rx_trans_t rx_tr_scb;
+
+    mailbox #(tx_trans_t ) gen2scb_tx;
+    mailbox #(rx_trans_t ) gen2scb_rx;
+    mailbox #(logic [7:0]) mnt2scb_tx;
+    mailbox #(logic [7:0]) mnt2scb_rx;
     
     
     function new(mailbox gen2scb_tx, mailbox gen2scb_rx, mailbox mnt2scb_tx, mailbox mnt2scb_rx);

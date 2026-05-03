@@ -98,9 +98,9 @@ end
 // ======================================================
 //  Transmitter (TX)
 // ======================================================
-
-// TX state machine manager
-
+//
+//      TX state machine manager
+//
 always_ff@(negedge clk) begin
     if(tx_stat == TX_STATE_HOLD) begin
     end
@@ -117,8 +117,9 @@ always_ff@(negedge clk) begin
     end
 end
 //-------------------------------------------------------
-// Catch tx_wren
-
+//
+//      Catch tx_wren
+//
 always_ff @(posedge clk) begin
     if(init_en) begin
         tx_empty  <= 1'b1;
@@ -132,8 +133,9 @@ always_ff @(posedge clk) begin
     end
 end
 //-------------------------------------------------------
-// Body of Transmitter
-
+//
+//      Body of Transmitter
+//
 always_ff @(posedge clk) begin
     if(init_en) begin
     
@@ -187,8 +189,9 @@ end
 // ======================================================
 //  Receiver (RX)
 // ======================================================
-// RX state machine manage
-
+//
+//      RX state machine manage
+//
 always_ff @(negedge clk) begin
      if(rx_stat == RX_STATE_HOLD) begin
      end
@@ -205,20 +208,30 @@ always_ff @(negedge clk) begin
      end
 end
 //-------------------------------------------------------
-// Synchronization
-
+//
+//      Synchronization
+//
 always_ff @(posedge clk) begin
     rxc_shift[0] <= rxc;
     rxc_shift[1] <= rxc_shift[0];
     rxc_shift[2] <= rxc_shift[1];
 end
+//-------------------------------------------------------
+//
+//      Increment counter rx_timer
+//
 always_ff @(posedge clk) begin
     rx_timer = (rx_timer_en) ? (rx_timer + 1) : 0;                              // Increment counter rx_timer
 end
 always_comb start_detected = (rxc_shift[2] && (!rxc_shift[1]));    // Catch the START bit
 //-------------------------------------------------------
-// Body of Receiver
-
+//
+//      Catch START bit
+//
+//-------------------------------------------------------
+//
+//      Body of Receiver
+//
 always_ff @(posedge clk) begin
     if(init_en) begin
         rx_complete <= 1'b0;
@@ -270,6 +283,10 @@ always_ff @(posedge clk) begin
         end
     end
     endcase
+//----------------------
+//
+//      Reset errors
+//
     if (rst_err) begin                              // Reset errors
         frame_error <= 1'b0;
         overrun     <= 1'b0;

@@ -190,6 +190,7 @@ class Generator;
         this.gen2drv_rx = gen2drv_rx;
         this.gen2scb_tx = gen2scb_tx;
         this.gen2scb_rx = gen2scb_rx;
+        this.gen2mnt_rx = gen2mnt_rx;
         
     endfunction
     
@@ -209,6 +210,7 @@ class Generator;
             gen2drv_rx.put(rx_trans);
             gen2scb_tx.put(tx_trans);
             gen2scb_rx.put(rx_trans);
+            gen2mnt_rx.put(rx_tr_gen.rden_delay );
             
         end
     

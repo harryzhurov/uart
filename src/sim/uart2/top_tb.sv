@@ -236,11 +236,12 @@ class Driver;
 
     int       num_trans_tx;
     int       num_trans_rx;
+    
+    tx_trans_t tx_tr_drv;
+    rx_trans_t rx_tr_drv;
 
-    mailbox   gen2drv_tx;
-    mailbox   gen2drv_rx;
-    
-    
+    mailbox #(tx_trans_t) gen2drv_tx;
+    mailbox #(rx_trans_t) gen2drv_rx;
     
     function new(mailbox gen2drv_tx, mailbox gen2drv_rx);
     

@@ -333,8 +333,10 @@ class Scoreboard;
     mailbox #(logic [7:0]) mnt2scb_tx;
     mailbox #(logic [7:0]) mnt2scb_rx;
     
-    
-    function new(mailbox gen2scb_tx, mailbox gen2scb_rx, mailbox mnt2scb_tx, mailbox mnt2scb_rx);
+    function new(mailbox #(tx_trans_t ) gen2scb_tx,
+                 mailbox #(rx_trans_t ) gen2scb_rx,
+                 mailbox #(logic [7:0]) mnt2scb_tx,
+                 mailbox #(logic [7:0]) mnt2scb_rx);
     
         this.gen2scb_tx = gen2scb_tx;
         this.gen2scb_rx = gen2scb_rx;

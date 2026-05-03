@@ -409,6 +409,9 @@ class Monitor;
     int         num_trans_tx;
     int         num_trans_rx;
     
+    int         rden_delay_mnt;
+    logic [7:0] tx_data_mnt;
+    logic [7:0] rx_data_mnt;
 
     mailbox     mnt2scb_tx;
     mailbox     mnt2scb_rx;

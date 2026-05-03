@@ -417,7 +417,9 @@ class Monitor;
     mailbox #(logic [7:0]) mnt2scb_rx;
     mailbox #(   int     ) gen2mnt_rx;
     
-    function new(mailbox mnt2scb_tx, mailbox mnt2scb_rx);
+    function new(mailbox #(logic [7:0]) mnt2scb_tx,
+                 mailbox #(logic [7:0]) mnt2scb_rx,
+                 mailbox #(    int    ) gen2mnt_rx);
     
         this.mnt2scb_tx = mnt2scb_tx;
         this.mnt2scb_rx = mnt2scb_rx;

@@ -429,34 +429,38 @@ class Monitor;
     
     task automatic receive_rx();
     
-        if(!overrun_flag) begin
-            @(posedge rx_complete) begin
-                mnt2scb_rx.put(rx_data);
+        forever begin
+    
+            if(!overrun_flag) begin
+                @(posedge rx_complete) begin
+                    mnt2scb_rx.put(rx_data);
+                end
             end
-        end
-        else begin
-            @(posedge overrun) begin
-                mnt2scb_rx.put(rx_data);
+            else begin
+                @(posedge overrun) begin
+                    mnt2scb_rx.put(rx_data);
+                end
+                overrun_flag = 0;
             end
-            overrun_flag = 0;
+            
+            num_trans_rx++;
         end
-        
-        num_trans_rx++;
     
     endtask
     
     task automatic rx_rden_send();
-        begin
+        forever begin
             @(posedge rx_complete) begin
+            
+                gen2mnt_rx.get(rden_delay_mnt);
     
-//                if( > UART_CYCLE)
-//                    overrun_flag = 1;
+                if(rden_delay_mnt > 10*UART_CYCLE)
+                    overrun_flag = 1;
     
-                #(rx_rden_delay*CLK_CYCLE);
+                #(rden_delay_mnt*CLK_CYCLE);
     
-                if(overrun) begin
+                if(overrun | frame_error)
                     reset_err();
-                end
     
                 @(posedge clk) rx_rden = 1;
                 @(posedge clk) rx_rden = 0;
@@ -466,16 +470,16 @@ class Monitor;
     endtask
     
     task automatic receive_tx();
-        begin
+        forever begin
             wait(!txc);
             #(UART_CYCLE+UART_CYCLE/2);
     
             for(int i=0; i<WORD; i++) begin
-                tx_data_shift = {tx_data_shift[6:0],txc};
+                tx_data_mnt = {tx_data_mnt[6:0],txc};
                 #UART_CYCLE;
             end
     
-            mnt2scb_tx.put(tx_data_shift);
+            mnt2scb_tx.put(tx_data_mnt);
             
             num_trans_tx++;
     
@@ -496,7 +500,10 @@ class Monitor;
             receive_rx();
             rx_rden_send();
             
+            receive_tx();
+            
         join        
+        
     endtask
 
 endclass 

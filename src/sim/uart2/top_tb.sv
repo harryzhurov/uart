@@ -575,9 +575,6 @@ class Environment;
 endclass
     
 //===================================================================================
-
-Environment env;
-
 //--------------------------------------------
 // Generator 100 MHz
 
@@ -611,6 +608,8 @@ task automatic init();
 endtask
 //--------------------------------------------
 // Test
+
+Environment env;
 
 initial begin
 

@@ -345,45 +345,57 @@ class Scoreboard;
     
     endfunction
     
-    task automatic run();
+    task automatic check_tx();
     
-        fork
-            begin
-                gen2scb_tx.get(tx_trans);
-                mnt2scb_tx.get(tx_data_shift);
-                if(tx_trans.data !== tx_data_shift) begin
-                
-                    $write("INFO: Error: tx_data doesn`t match, trans ID = %d", tx_trans.id);
-                    $write("/nSent data = %d, Received = %d",tx_trans.data,tx_data_shift);
-                    $display();
-                    
-                end
-                
-                num_trans_tx++;
-                
-            end
-            begin
-            
-                gen2scb_rx.get(rx_data_rcvd);
-                mnt2scb_rx.get(rx_data_rcvd);
-                
-                for(int i=0; i<WORD; i++) begin
-                    rx_reversed_data[i] = rx_data_rcvd[7-i];
-                end
-                
-                if(rx_trans.data !== rx_reversed_data) begin
-                
-                    $write("INFO: Error: rx_data doesn`t match, trans ID = %d", rx_trans.id);
-                    $write("/nSent data = %d, Received = %d",rx_trans.data,rx_reversed_data);
-                    $display(); 
-                
-                end
-                
-                num_trans_rx++;
-            
-            end
+        forever begin
         
-        join_any
+            gen2scb_tx.get(tx_tr_scb);
+            mnt2scb_tx.get(tx_data_shift);
+            if(tx_tr_scb.data !== tx_data_shift) begin
+            
+                $display("INFO: Error: tx_data doesn`t match, trans ID = %d", tx_tr_scb.id);
+                $display("Sent data = %h, Received = %h",tx_tr_scb.data,tx_data_shift);
+                
+            end
+            
+            num_trans_tx++;
+        
+        end
+        
+    endtask
+    
+    task automatic check_rx();
+    
+        forever begin
+    
+            gen2scb_rx.get(rx_tr_scb);
+            mnt2scb_rx.get(rx_data_rcvd);
+            
+            for(int i=0; i<WORD; i++) begin
+                rx_reversed_data[i] = rx_data_rcvd[7-i];
+            end
+            
+            if(rx_tr_scb.data !== rx_reversed_data) begin
+            
+                $display("INFO: Error: rx_data doesn`t match, trans ID = %d", rx_tr_scb.id);
+                $display("Sent data = %h, Received = %h",rx_tr_scb.data,rx_reversed_data);
+            
+            end
+            
+            num_trans_rx++;
+        
+        end
+    
+    endtask
+    
+    task automatic run();
+        
+        fork
+            
+            check_tx();
+            check_rx();
+        
+        join
     
     endtask
 

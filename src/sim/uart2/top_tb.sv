@@ -74,26 +74,9 @@ logic            overrun;
 //---------------------------------------------
 // Declaration internal signals
 
-logic [ WORD-1:0] tx_array_sent     [NUMBER_OF_TESTS-1:0] = '{default: 0};
-logic [ WORD-1:0] rx_array_sent     [NUMBER_OF_TESTS-1:0] = '{default: 0};
-logic [ WORD-1:0] tx_array_received [NUMBER_OF_TESTS-1:0] = '{default: 0};
-logic [ WORD-1:0] rx_array_received [NUMBER_OF_TESTS-1:0] = '{default: 0};
-logic [ WORD-1:0] tx_rand_data;
-logic [ WORD-1:0] rx_reversed_data;
-logic [  WORD:0 ] rx_rand_data;
-logic [    7:0  ] tx_data_shift;
 
 logic             overrun_flag       = 0;
 logic             baud_pulse         = 0;
-
-int               rx_send_data_delay = 0;
-int               rx_rden_delay      = 0;
-int               tx_send_data_delay = 0;
-int               tx_arr_sent_index  = 0;
-int               tx_arr_rcvd_index  = 0;
-int               rx_arr_sent_index  = 0;
-int               rx_arr_rcvd_index  = 0;
-int               err                = 0;
 //===================================================================================
 // Class Generator
 

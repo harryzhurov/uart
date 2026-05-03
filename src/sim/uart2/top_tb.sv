@@ -6,7 +6,6 @@ module uart_tb();
 
 localparam NUMBER_OF_TESTS = 100  ;
 localparam WORD            = 8   ;
-localparam NUM_TEST_LEN    = 9   ;
 
 localparam CLK_FREQ       = 100_000_000;
 localparam BAUD_RATE      = 115200;

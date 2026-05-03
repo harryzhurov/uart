@@ -240,10 +240,7 @@ class Driver;
     mailbox   gen2drv_tx;
     mailbox   gen2drv_rx;
     
-    Generator gen;
     
-    Generator::Tx_trans tx_trans;
-    Generator::Rx_trans rx_trans;
     
     function new(mailbox gen2drv_tx, mailbox gen2drv_rx);
     
@@ -332,10 +329,7 @@ class Scoreboard;
     mailbox   mnt2scb_tx;
     mailbox   mnt2scb_rx;
     
-    Generator gen;
     
-    Generator::Tx_trans tx_trans;
-    Generator::Rx_trans rx_trans;
     
     function new(mailbox gen2scb_tx, mailbox gen2scb_rx, mailbox mnt2scb_tx, mailbox mnt2scb_rx);
     

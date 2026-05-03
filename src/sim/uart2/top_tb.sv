@@ -517,12 +517,13 @@ class Environment;
     Monitor     mnt;
     Scoreboard  scb;
     
-    mailbox gen2drv_tx;
-    mailbox gen2drv_rx;
-    mailbox gen2scb_tx;
-    mailbox gen2scb_rx;
-    mailbox mnt2scb_tx;
-    mailbox mnt2scb_rx;
+    mailbox #(tx_trans_t ) gen2drv_tx;
+    mailbox #(rx_trans_t ) gen2drv_rx;
+    mailbox #(tx_trans_t ) gen2scb_tx;
+    mailbox #(rx_trans_t ) gen2scb_rx;
+    mailbox #(logic [7:0]) mnt2scb_tx;
+    mailbox #(logic [7:0]) mnt2scb_rx;
+    mailbox #(    int    ) gen2mnt_rx;
     
     function new();
     
@@ -532,10 +533,11 @@ class Environment;
         gen2scb_rx = new();
         mnt2scb_tx = new();
         mnt2scb_rx = new();
+        gen2mnt_rx = new();
         
-        gen = new(gen2drv_tx,gen2drv_rx,gen2scb_tx,gen2scb_rx);
+        gen = new(gen2drv_tx,gen2drv_rx,gen2scb_tx,gen2scb_rx,gen2mnt_rx);
         drv = new(gen2drv_tx,gen2drv_rx);
-        mnt = new(mnt2scb_tx,mnt2scb_rx);
+        mnt = new(mnt2scb_tx,mnt2scb_rx,gen2mnt_rx);
         scb = new(gen2scb_tx,gen2scb_rx,mnt2scb_tx,mnt2scb_rx);
         
     endfunction;

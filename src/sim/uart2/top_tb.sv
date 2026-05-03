@@ -253,7 +253,7 @@ class Driver;
     
     task automatic run_tx();
     
-        repeat (NUMBER_OF_TESTS) begin
+        forever begin
         
             gen2drv_tx.get(tx_trans);
             
@@ -279,7 +279,7 @@ class Driver;
     
     task automatic run_rx();
     
-        repeat (NUMBER_OF_TESTS) begin
+        forever begin
         
             gen2drv_rx.get(rx_trans);
             

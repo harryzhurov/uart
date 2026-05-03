@@ -409,7 +409,6 @@ class Monitor;
     int         num_trans_tx;
     int         num_trans_rx;
     
-    logic [7:0] tx_data_shift;
 
     mailbox     mnt2scb_tx;
     mailbox     mnt2scb_rx;

@@ -152,9 +152,9 @@ always_ff @(posedge clk) begin
         end
     end
     TX_START: begin
-        tx_empty_clr <= 1'b1;                   // Clear tx_empty flag
+        tx_empty_clr <= 1'b1;
         if (baud_tick) begin
-            txc        <= 1'b0;                 // Start bit
+            txc        <= 1'b0;
             tx_bit_cnt <= 4'd0;
             tx_stat    <= TX_STATE_NEXT;
         end
@@ -163,8 +163,8 @@ always_ff @(posedge clk) begin
         tx_stat      <= TX_STATE_HOLD;
         tx_empty_clr <= 1'b0;
         if (baud_tick) begin
-            txc        <= tx_shift[7];            // LSB first
-            tx_shift   <= {tx_shift[6:0],1'b0 };  // Shift to the right
+            txc        <= tx_shift[7];
+            tx_shift   <= {tx_shift[6:0],1'b0 };
             tx_bit_cnt <= tx_bit_cnt + 1;
             if (tx_bit_cnt == LAST_BIT) begin
                 tx_stat <= TX_STATE_NEXT;
@@ -174,12 +174,12 @@ always_ff @(posedge clk) begin
     TX_STOP: begin
         tx_stat <= TX_STATE_HOLD;
         if (baud_tick) begin
-            txc <= 1'b1;                        // Stop bit
-            if (tx_empty == 1'b0) begin         // Next data is already ready
+            txc <= 1'b1;
+            if (tx_empty == 1'b0) begin
                 tx_shift     <= tx_buffer;
                 tx_stat      <= TX_STATE_START;
             end else begin
-                tx_complete  <= 1'b1;            // Done
+                tx_complete  <= 1'b1;
                 tx_stat      <= TX_STATE_NEXT;
             end
         end
@@ -221,13 +221,13 @@ end
 //      Increment counter rx_timer
 //
 always_ff @(posedge clk) begin
-    rx_timer = (rx_timer_en) ? (rx_timer + 1) : 0;                              // Increment counter rx_timer
+    rx_timer = (rx_timer_en) ? (rx_timer + 1) : 0;                              
 end
-always_comb start_detected = (rxc_shift[2] && (!rxc_shift[1]));    // Catch the START bit
 //-------------------------------------------------------
 //
 //      Catch START bit
 //
+always_comb start_detected = (rxc_shift[2] && (!rxc_shift[1]));
 //-------------------------------------------------------
 //
 //      Body of Receiver
@@ -249,7 +249,7 @@ always_ff @(posedge clk) begin
     RX_HALF: begin
         rx_stat     <= RX_STATE_HOLD;
         rx_timer_en <= 1;
-        if (rx_timer == HALF_PERIOD - 1) begin      // Middle of the bit
+        if (rx_timer == HALF_PERIOD - 1) begin
             rx_stat <= RX_STATE_IDLE;
             if (rxc_shift[2] == 1'b0) begin
                 rx_timer_en <= 0;
@@ -262,7 +262,7 @@ always_ff @(posedge clk) begin
         rx_stat     <= RX_STATE_HOLD;
         rx_timer_en <= 1;
         if (rx_timer == BIT_PERIOD - 1) begin
-            rx_shift    <= {rx_shift[6:0], rxc_shift[2]};  // LSB first
+            rx_shift    <= {rx_shift[6:0], rxc_shift[2]};
             rx_bit_cnt  <= rx_bit_cnt + 1;
             rx_timer_en <= 0;
             if (rx_bit_cnt == LAST_BIT) begin
@@ -287,7 +287,7 @@ always_ff @(posedge clk) begin
 //
 //      Reset errors
 //
-    if (rst_err) begin                              // Reset errors
+    if (rst_err) begin
         frame_error <= 1'b0;
         overrun     <= 1'b0;
     end

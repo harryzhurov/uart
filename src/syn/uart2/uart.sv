@@ -153,6 +153,7 @@ always_ff @(posedge clk) begin
     end
     TX_START: begin
         tx_empty_clr <= 1'b1;
+        tx_stat     <= TX_STATE_HOLD;
         if (baud_tick) begin
             txc        <= 1'b0;
             tx_bit_cnt <= 4'd0;

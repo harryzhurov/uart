@@ -41,11 +41,10 @@ rx_random_t rx_cfg;
 typedef struct 
 { 
     logic [7:0] data;
-    logic       complete;
-    logic       empty;   
+    int         data_delay;  
+    int         id;
 } 
-tx_logic_t;
-tx_logic_t tx_log;
+tx_trans_t;
 
 typedef struct 
 { 

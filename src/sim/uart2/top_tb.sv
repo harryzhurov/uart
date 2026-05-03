@@ -73,7 +73,6 @@ logic            overrun;
 //---------------------------------------------
 // Declaration internal signals
 
-
 logic             overrun_flag       = 0;
 logic             baud_pulse         = 0;
 //===================================================================================
@@ -255,15 +254,15 @@ class Driver;
     
         forever begin
         
-            gen2drv_tx.get(tx_trans);
+            gen2drv_tx.get(tx_tr_drv);
             
-            #(tx_trans.data_delay*CLK_CYCLE);
+            #(tx_tr_drv.data_delay*CLK_CYCLE);
     
              if(tx_empty) 
-                tx_data = tx_trans.data;
+                tx_data = tx_tr_drv.data;
              else begin
                 wait(tx_empty);
-                tx_data = tx_trans.data;
+                tx_data = tx_tr_drv.data;
              end
     
             @(posedge clk) tx_wren = 1;
@@ -281,19 +280,19 @@ class Driver;
     
         forever begin
         
-            gen2drv_rx.get(rx_trans);
+            gen2drv_rx.get(rx_tr_drv);
             
-            #(rx_trans.send_delay*CLK_CYCLE);
+            #(rx_tr_drv.send_delay*CLK_CYCLE);
     
             wait(baud_pulse);
             rxc = 0;
     
             for(int i=0; i<WORD; i++) begin
                 #(UART_CYCLE);
-                rxc = rx_trans.data[i];
+                rxc = rx_tr_drv.data[i];
             end
             
-            #(UART_CYCLE) rxc = rx_trans.stop_bit;
+            #(UART_CYCLE) rxc = rx_tr_drv.stop_bit;
             
             #(UART_CYCLE) rxc = 1;
             

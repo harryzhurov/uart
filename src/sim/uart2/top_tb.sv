@@ -612,8 +612,8 @@ end
 
 task automatic init();
     
-    rxc     = 1;
     tx_data = 8'h00;
+    rxc     = 1;
     tx_wren = 0;
     rx_rden = 0;
     rst_err = 0;

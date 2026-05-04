@@ -79,8 +79,8 @@ logic            overrun;
 //---------------------------------------------
 // Internal signals
 
-logic             overrun_flag       = 0;
-logic             baud_pulse         = 0;
+logic            overrun_flag       = 0;
+logic            baud_pulse         = 0;
 int              err                = 0;
 //===================================================================================
 //

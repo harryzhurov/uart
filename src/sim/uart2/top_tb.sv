@@ -465,9 +465,9 @@ class Monitor;
             
                 gen2mnt_rx.get(rden_delay_mnt);
     
-                if(rden_delay_mnt > 10*UART_CYCLE)
+                if(rden_delay_mnt > UART_CYCLE) begin
                     overrun_flag = 1;
-    
+                end
                 
                 $display("INFO: rden_delay = %d", rden_delay_mnt);
                 #(rden_delay_mnt*CLK_CYCLE);

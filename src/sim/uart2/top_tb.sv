@@ -81,6 +81,7 @@ logic            overrun;
 
 logic             overrun_flag       = 0;
 logic             baud_pulse         = 0;
+int              err                = 0;
 //===================================================================================
 //
 //      Class Generator
@@ -565,6 +566,9 @@ class Environment;
         join_any
         
         run_wait_end();
+        
+        if(!err) $display("INFO: Test succeed!");
+        else $display("INFO: Test failed! Number of error = %d", err);
         
         $finish;
         

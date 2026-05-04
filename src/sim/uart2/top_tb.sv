@@ -366,6 +366,7 @@ class Scoreboard;
             
                 $display("INFO: Error: tx_data doesn`t match, trans ID = %d", tx_tr_scb.id);
                 $display("      Sent data = %h, Received = %h",tx_tr_scb.data,tx_data_shift);
+                err++;
                 
             end
             
@@ -390,6 +391,7 @@ class Scoreboard;
             
                 $display("INFO: Error: rx_data doesn`t match, trans ID = %d", rx_tr_scb.id);
                 $display("      Sent data = %h, Received = %h",rx_tr_scb.data,rx_reversed_data);
+                err++;
             
             end
             
@@ -470,6 +472,7 @@ class Monitor;
                 end
                 
                 $display("INFO: rden_delay = %d", rden_delay_mnt);
+
                 #(rden_delay_mnt*CLK_CYCLE);
                 
                 @(posedge clk) rx_rden = 1;

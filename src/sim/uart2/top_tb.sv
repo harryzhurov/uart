@@ -2,8 +2,9 @@
 
 module uart_tb();
 //===================================================================================
-// Parameters
-
+//
+//      Parameters
+//
 localparam NUMBER_OF_TESTS = 100  ;
 localparam WORD            = 8   ;
 
@@ -13,7 +14,10 @@ localparam BIT_PERIOD     = CLK_FREQ / BAUD_RATE;
 localparam HALF_PERIOD    = BIT_PERIOD / 2;
 localparam CLK_CYCLE      = 1_000_000_000/CLK_FREQ  ;
 localparam UART_CYCLE     = BIT_PERIOD*CLK_CYCLE;
-
+//===================================================================================
+//
+//      Types
+//
 typedef struct 
 {
     int zero_data        = 100;     // probability of data = 2'h00 (1%)
@@ -34,8 +38,6 @@ typedef struct
 }
 rx_random_t;
 rx_random_t rx_cfg;
-//===================================================================================
-// Signals
 
 typedef struct 
 { 
@@ -54,6 +56,10 @@ typedef struct
     bit         stop_bit;
 } 
 rx_trans_t;
+//===================================================================================
+//
+//      Signals
+//
 //---------------------------------------------
 // UART interface
 
@@ -71,13 +77,14 @@ logic            rx_complete;
 logic            frame_error;
 logic            overrun;
 //---------------------------------------------
-// Declaration internal signals
+// Internal signals
 
 logic             overrun_flag       = 0;
 logic             baud_pulse         = 0;
 //===================================================================================
-// Class Generator
-
+//
+//      Class Generator
+//
 class Generator;
     //------------------------------------------------------
     class Tx_trans;
@@ -229,8 +236,9 @@ class Generator;
     
 endclass
 //===================================================================================
-// Class Driver
-
+//
+//      Class Driver
+//
 class Driver;
 
     int       num_trans_tx;
@@ -315,8 +323,9 @@ class Driver;
 
 endclass
 //===================================================================================
-// Class Scoreboard
-
+//
+//      Class Scoreboard
+//
 class Scoreboard;
 
     int         num_trans_tx;
@@ -402,8 +411,9 @@ class Scoreboard;
 
 endclass
 //===================================================================================
-// Class Monitor
-
+//
+//      Class Monitor
+//
 class Monitor;
 
     int         num_trans_tx;
@@ -508,8 +518,9 @@ class Monitor;
 
 endclass 
 //===================================================================================
-// Class Environment
-
+//
+//      Class Environment
+//
 class Environment;
 
     Generator   gen;
@@ -622,6 +633,9 @@ initial begin
 end
 
 //===================================================================================
+//
+//      Instances
+//
 uart dut0
 (
     .clk         ( clk         ),
@@ -638,6 +652,6 @@ uart dut0
     .overrun     ( overrun     ),
     .rst_err     ( rst_err     )
 );
-
+//===================================================================================
 endmodule
-
+//===================================================================================

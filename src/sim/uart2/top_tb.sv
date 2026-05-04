@@ -364,7 +364,7 @@ class Scoreboard;
             if(tx_tr_scb.data !== tx_data_shift) begin
             
                 $display("INFO: Error: tx_data doesn`t match, trans ID = %d", tx_tr_scb.id);
-                $display("Sent data = %h, Received = %h",tx_tr_scb.data,tx_data_shift);
+                $display("      Sent data = %h, Received = %h",tx_tr_scb.data,tx_data_shift);
                 
             end
             
@@ -388,7 +388,7 @@ class Scoreboard;
             if(rx_tr_scb.data !== rx_reversed_data) begin
             
                 $display("INFO: Error: rx_data doesn`t match, trans ID = %d", rx_tr_scb.id);
-                $display("Sent data = %h, Received = %h",rx_tr_scb.data,rx_reversed_data);
+                $display("      Sent data = %h, Received = %h",rx_tr_scb.data,rx_reversed_data);
             
             end
             

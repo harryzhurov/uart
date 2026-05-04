@@ -471,12 +471,13 @@ class Monitor;
                 
                 $display("INFO: rden_delay = %d", rden_delay_mnt);
                 #(rden_delay_mnt*CLK_CYCLE);
+                
+                @(posedge clk) rx_rden = 1;
+                @(posedge clk) rx_rden = 0;
     
                 if(overrun | frame_error)
                     reset_err();
     
-                @(posedge clk) rx_rden = 1;
-                @(posedge clk) rx_rden = 0;
             end
         end
         

@@ -468,6 +468,8 @@ class Monitor;
                 if(rden_delay_mnt > 10*UART_CYCLE)
                     overrun_flag = 1;
     
+                
+                $display("INFO: rden_delay = %d", rden_delay_mnt);
                 #(rden_delay_mnt*CLK_CYCLE);
     
                 if(overrun | frame_error)

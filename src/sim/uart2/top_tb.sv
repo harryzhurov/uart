@@ -33,7 +33,7 @@ typedef struct
     int send_del_exist   = 200;     // probability of delay existance before data sending (2%)
     int send_del_dist    = 10000;   // in range [0:10000] clk cycles
     int rden_del_exist   = 1000;    // probability of delay existance before rx_rden flag sending (10%)
-    int rden_del_dist    = 15000;   // in range [0:15000] clk cycles
+    int rden_del_dist    = 16000;   // in range [0:15000] clk cycles
     int zero_data        = 500;     // probability of data = 2'h00 (5%)
 }
 rx_random_t;

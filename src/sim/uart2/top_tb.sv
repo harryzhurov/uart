@@ -321,6 +321,7 @@ class Driver;
             #(UART_CYCLE) rxc = rx_tr_drv.stop_bit;
             
             #(UART_CYCLE) rxc = 1;
+            #(UART_CYCLE);
             
             num_trans_rx++;
             

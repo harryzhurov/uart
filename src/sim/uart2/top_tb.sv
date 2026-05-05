@@ -7,7 +7,6 @@ module uart_tb();
 //
 localparam NUMBER_OF_TESTS = 1000  ;
 localparam WORD            = 8   ;
-
 localparam CLK_FREQ       = 100_000_000;
 localparam BAUD_RATE      = 115200;
 localparam BIT_PERIOD     = CLK_FREQ / BAUD_RATE;
@@ -56,6 +55,13 @@ typedef struct
     bit         stop_bit;
 } 
 rx_trans_t;
+
+typedef struct
+{
+    int rden_delay;
+    int send_delay;
+}
+mnt_dels_t;
 //===================================================================================
 //
 //      Signals
@@ -179,9 +185,10 @@ class Generator;
     
     Tx_trans tx_trans;
     Rx_trans rx_trans;
-    
-    tx_trans_t tx_tr_gen;
-    rx_trans_t rx_tr_gen;
+
+    mnt_dels_t rx_mnt_del;
+    tx_trans_t tx_tr_gen ;
+    rx_trans_t rx_tr_gen ;
     
     mailbox #(tx_trans_t) gen2drv_tx;
     mailbox #(rx_trans_t) gen2drv_rx;
@@ -189,13 +196,13 @@ class Generator;
     mailbox #(tx_trans_t) gen2scb_tx;
     mailbox #(rx_trans_t) gen2scb_rx;
     
-    mailbox #(   int    ) gen2mnt_rx;
+    mailbox #(mnt_dels_t) gen2mnt_rx;
     
     function new(mailbox #(tx_trans_t) gen2drv_tx,
                  mailbox #(rx_trans_t) gen2drv_rx,
                  mailbox #(tx_trans_t) gen2scb_tx,
                  mailbox #(rx_trans_t) gen2scb_rx,
-                 mailbox #(   int    ) gen2mnt_rx);
+                 mailbox #(mnt_dels_t) gen2mnt_rx);
     
         this.gen2drv_tx = gen2drv_tx;
         this.gen2drv_rx = gen2drv_rx;
@@ -217,22 +224,26 @@ class Generator;
             if(!tx_trans.randomize()) $display("INFO: ERROR: tx_trans_randomization failed!");
             if(!rx_trans.randomize()) $display("INFO: ERROR: rx_trans_randomization failed!");
             
-            tx_tr_gen.data       = tx_trans.data;
-            tx_tr_gen.data_delay = tx_trans.data_delay;
-            tx_tr_gen.id         = tx_trans.id;
+            tx_tr_gen.data        = tx_trans.data;
+            tx_tr_gen.data_delay  = tx_trans.data_delay;
+            tx_tr_gen.id          = tx_trans.id;
             
-            rx_tr_gen.data       = rx_trans.data;
-            rx_tr_gen.send_delay = rx_trans.send_delay;
-            rx_tr_gen.rden_delay = rx_trans.rden_delay;
-            rx_tr_gen.stop_bit   = rx_trans.stop_bit;
-            rx_tr_gen.id         = tx_trans.id;
+            rx_tr_gen.data        = rx_trans.data;
+            rx_tr_gen.send_delay  = rx_trans.send_delay;
+            rx_tr_gen.rden_delay  = rx_trans.rden_delay;
+            rx_tr_gen.stop_bit    = rx_trans.stop_bit;
+            rx_tr_gen.id          = tx_trans.id;
+            
+            rx_mnt_del.rden_delay = rx_trans.rden_delay;
+            rx_mnt_del.send_delay = rx_trans.send_delay;
             
             
-            gen2drv_tx.put(     tx_tr_gen       );
-            gen2drv_rx.put(     rx_tr_gen       );
-            gen2scb_tx.put(     tx_tr_gen       );
-            gen2scb_rx.put(     rx_tr_gen       );
-            gen2mnt_rx.put(rx_tr_gen.rden_delay );
+            gen2drv_tx.put(tx_tr_gen );
+            gen2drv_rx.put(rx_tr_gen );
+            gen2scb_tx.put(tx_tr_gen );
+            gen2scb_rx.put(rx_tr_gen );
+            gen2mnt_rx.put(rx_mnt_del);
+            gen2mnt_rx.put(rx_mnt_del);
             
         end
     
@@ -246,8 +257,8 @@ endclass
 //
 class Driver;
 
-    int       num_trans_tx;
-    int       num_trans_rx;
+    int num_trans_tx;
+    int num_trans_rx;
     
     tx_trans_t tx_tr_drv;
     rx_trans_t rx_tr_drv;
@@ -426,17 +437,17 @@ class Monitor;
     int         num_trans_tx;
     int         num_trans_rx;
     
-    int         rden_delay_mnt;
+    mnt_dels_t  rx_mnt_dels;
     logic [7:0] tx_data_mnt;
     logic [7:0] rx_data_mnt;
 
     mailbox #(logic [7:0]) mnt2scb_tx;
     mailbox #(logic [7:0]) mnt2scb_rx;
-    mailbox #(   int     ) gen2mnt_rx;
+    mailbox #(mnt_dels_t ) gen2mnt_rx;
     
     function new(mailbox #(logic [7:0]) mnt2scb_tx,
                  mailbox #(logic [7:0]) mnt2scb_rx,
-                 mailbox #(    int    ) gen2mnt_rx);
+                 mailbox #(mnt_dels_t ) gen2mnt_rx);
     
         this.mnt2scb_tx = mnt2scb_tx;
         this.mnt2scb_rx = mnt2scb_rx;
@@ -545,7 +556,7 @@ class Environment;
     mailbox #(rx_trans_t ) gen2scb_rx;
     mailbox #(logic [7:0]) mnt2scb_tx;
     mailbox #(logic [7:0]) mnt2scb_rx;
-    mailbox #(    int    ) gen2mnt_rx;
+    mailbox #(mnt_dels_t ) gen2mnt_rx;
     
     function new();
     

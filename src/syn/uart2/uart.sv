@@ -63,6 +63,24 @@ localparam RX_STATE_IDLE  = 2;
 //
 //          Structs
 //
+typedef enum logic[1:0]
+{
+    TX_STATE_HOLD,
+    TX_STATE_NEXT,
+    TX_STATE_START
+}
+tx_stat_t;
+tx_stat_t tx_stat = TX_STATE_HOLD;
+
+typedef enum logic[1:0]
+{
+    RX_STATE_HOLD,
+    RX_STATE_NEXT,
+    RX_STATE_IDLE
+}
+rx_stat_t;
+rx_stat_t rx_stat = RX_STATE_HOLD;
+
 typedef enum logic [1:0]
 {
     TX_IDLE,

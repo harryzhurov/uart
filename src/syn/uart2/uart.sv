@@ -1,7 +1,8 @@
 `timescale 1ns / 1ps
 // ======================================================
-//  Declaration of module
-// ======================================================
+//
+//          Instance
+//
 module uart (
     input  logic       clk,          // 100 MHz
 
@@ -20,8 +21,13 @@ module uart (
     input  logic       rst_err
 );
 // ======================================================
-//  Declaration of signals
+//
+//          Params
+//
 // ======================================================
+//
+//          Logic
+//
 logic [2:0] rxc_shift       = 0;
 logic [1:0] tx_stat         = 0;        
 logic [1:0] rx_stat         = 0;
@@ -42,7 +48,6 @@ logic       tx_empty_clr;
 
 logic [1:0] init    = 0;
 logic       init_en;
-//-------------------------------------------------------
 localparam CLK_FREQ       = 100_000_000;
 localparam BAUD_RATE      = 115200;
 localparam BIT_PERIOD     = CLK_FREQ / BAUD_RATE; // 868
@@ -54,7 +59,10 @@ localparam TX_STATE_START = 2;
 localparam RX_STATE_HOLD  = 0;
 localparam RX_STATE_NEXT  = 1;
 localparam RX_STATE_IDLE  = 2;
-//-------------------------------------------------------
+// ======================================================
+//
+//          Structs
+//
 typedef enum logic [1:0]
 {
     TX_IDLE,
@@ -77,16 +85,22 @@ rx_state_t;
 
 rx_state_t rx_state = RX_IDLE;
 // ======================================================
+//
+//          Process
+//
+//-------------------------------------------------------
+//
 //  Initialization
-// ======================================================
+//
 always_ff @(posedge clk) begin
     init[0] <= 1'b1;
     init[1] <= init[0];
     init_en <= init[0] && (!init[1]);
 end
-// ======================================================
-//  Generator of refference frequancy UART
-// ======================================================
+//-------------------------------------------------------
+//
+//  Generator of reference frequancy UART
+//
 always_ff @(posedge clk) begin
     baud_cnt  <= baud_cnt + 1;
     baud_tick <= 0;
@@ -95,11 +109,13 @@ always_ff @(posedge clk) begin
         baud_tick <= 1;
     end
 end
-// ======================================================
-//  Transmitter (TX)
-// ======================================================
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //
-//      TX state machine manager
+//      Transmitter (TX)
+//
+//-------------------------------------------------------
+//
+//  TX state machine manager
 //
 always_ff@(negedge clk) begin
     if(tx_stat == TX_STATE_HOLD) begin
@@ -118,7 +134,7 @@ always_ff@(negedge clk) begin
 end
 //-------------------------------------------------------
 //
-//      Catch tx_wren
+//  Catch tx_wren
 //
 always_ff @(posedge clk) begin
     if(init_en) begin
@@ -126,7 +142,7 @@ always_ff @(posedge clk) begin
     end
     if (tx_wren) begin
         tx_buffer <= tx_data;
-        tx_empty  <= 1'b0;                       // Buffer is busy
+        tx_empty  <= 1'b0;
     end
     else if(tx_empty_clr) begin
         tx_empty  <= 1'b1;
@@ -134,7 +150,7 @@ always_ff @(posedge clk) begin
 end
 //-------------------------------------------------------
 //
-//      Body of Transmitter
+//  Body of Transmitter
 //
 always_ff @(posedge clk) begin
     if(init_en) begin
@@ -187,11 +203,13 @@ always_ff @(posedge clk) begin
     end
     endcase
 end
-// ======================================================
-//  Receiver (RX)
-// ======================================================
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //
-//      RX state machine manage
+//      Receiver (RX)
+//
+//-------------------------------------------------------
+//
+//  RX state machine manage
 //
 always_ff @(negedge clk) begin
      if(rx_stat == RX_STATE_HOLD) begin
@@ -210,7 +228,7 @@ always_ff @(negedge clk) begin
 end
 //-------------------------------------------------------
 //
-//      Synchronization
+//  Synchronization
 //
 always_ff @(posedge clk) begin
     rxc_shift[0] <= rxc;
@@ -219,19 +237,19 @@ always_ff @(posedge clk) begin
 end
 //-------------------------------------------------------
 //
-//      Increment counter rx_timer
+//  Increment counter rx_timer
 //
 always_ff @(posedge clk) begin
     rx_timer = (rx_timer_en) ? (rx_timer + 1) : 0;                              
 end
 //-------------------------------------------------------
 //
-//      Catch START bit
+//  Catch START bit
 //
 always_comb start_detected = (rxc_shift[2] && (!rxc_shift[1]));
 //-------------------------------------------------------
 //
-//      Body of Receiver
+//  Body of Receiver
 //
 always_ff @(posedge clk) begin
     if(init_en) begin
@@ -287,9 +305,9 @@ always_ff @(posedge clk) begin
         end
     end
     endcase
-//----------------------
+//-------------------------------------------------------
 //
-//      Reset errors
+//  Reset errors
 //
     if (rst_err) begin
         frame_error <= 1'b0;

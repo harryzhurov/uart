@@ -600,8 +600,8 @@ class Environment;
         
         run_wait_end();
         
-        if(!err) $display("INFO: Test succeed!");
-        else $display("INFO: Test failed! Number of error = %d", err);
+        if(!err) $display("\033[32mINFO: Test succeed!\033[0m");
+        else $display("\033[31mINFO: Test failed! Number of error = %d \033[0m", err);
         
         $finish;
         

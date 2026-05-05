@@ -618,7 +618,6 @@ class Environment;
         
         join_any
         
-        #(2 * %realtime);
         
     endtask
 

@@ -34,8 +34,6 @@ localparam LAST_BIT       = 7;
 //          Logic
 //
 logic [2:0] rxc_shift       = 0;
-logic [1:0] tx_stat         = 0;        
-logic [1:0] rx_stat         = 0;
 logic [9:0] baud_cnt        = 0;
 logic [7:0] tx_buffer       = 0;
 logic [7:0] tx_shift        = 0;
@@ -53,12 +51,6 @@ logic       tx_empty_clr;
 
 logic [1:0] init    = 0;
 logic       init_en;
-localparam TX_STATE_HOLD  = 0;
-localparam TX_STATE_NEXT  = 1;
-localparam TX_STATE_START = 2;
-localparam RX_STATE_HOLD  = 0;
-localparam RX_STATE_NEXT  = 1;
-localparam RX_STATE_IDLE  = 2;
 // ======================================================
 //
 //          Structs

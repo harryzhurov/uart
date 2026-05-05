@@ -140,6 +140,7 @@ class Generator;
     
         rand bit       stop_bit;
         rand bit       wrong_rden;
+        rand bit       del_send;
         rand int       send_delay;
         rand int       rden_delay;
         rand bit [7:0] data;
@@ -165,7 +166,10 @@ class Generator;
             stop_bit    dist  {0 := (wrong_stop_exist/100)        , 1       := (100 - wrong_stop_exist/100) };
             wrong_rden  dist  {0 := (100 - (rden_del_exist/100))  , 1       := (rden_del_exist/100)         };
             data        dist  {0 := (zero_data/100)               , [1:255] := (100 - (zero_data/100))      };
+            del_send    dist  {0 := (100 - (send_del_exist/100))  , 1       := (send_del_exist/100)         };
             
+            (del_send == 0) -> (send_delay==0);
+            solve del_send before send_delay;
             (wrong_rden==0) -> (rden_delay==0);
             solve wrong_rden before rden_delay;
         }

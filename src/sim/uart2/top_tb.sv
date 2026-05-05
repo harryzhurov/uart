@@ -466,17 +466,10 @@ class Monitor;
     task automatic receive_rx();
     
         forever begin
-    
-            if(!overrun_flag) begin
-                @(posedge rx_complete) begin
-                    mnt2scb_rx.put(rx_data);
-                end
-            end
-            else begin
-                @(posedge overrun) begin
-                    mnt2scb_rx.put(rx_data);
-                end
-                overrun_flag = 0;
+
+            @(posedge rx_complete, posedge overrun) begin
+                wait(baud_pulse);
+                mnt2scb_rx.put(rx_data);
             end
             
             num_trans_rx++;
@@ -485,20 +478,20 @@ class Monitor;
     endtask
     
     task automatic rx_rden_send();
+
         forever begin
-            @(posedge rx_complete) begin
+
+            gen2mnt_rx.get(rx_mnt_dels);
             
             //$display("rx_rden_send start[%t]", $realtime);
-                gen2mnt_rx.get(rden_delay_mnt);
-    
-                if(rden_delay_mnt > UART_CYCLE) begin
-                    overrun_flag = 1;
-                end
+            
+            @(posedge rx_complete) begin
+
                 
                 /*$display("INFO: rden_delay = %d", rx_mnt_dels.rden_delay);
                 $display("INFO: send_delay = %d", rx_mnt_dels.send_delay);*/
 
-                #(rden_delay_mnt*CLK_CYCLE);
+                #(rx_mnt_dels.rden_delay*CLK_CYCLE);
                 
                 @(posedge clk) rx_rden = 1;
                 @(posedge clk) rx_rden = 0;

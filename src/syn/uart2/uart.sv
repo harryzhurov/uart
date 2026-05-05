@@ -24,6 +24,11 @@ module uart (
 //
 //          Params
 //
+localparam CLK_FREQ       = 100_000_000;
+localparam BAUD_RATE      = 115200;
+localparam BIT_PERIOD     = CLK_FREQ / BAUD_RATE; // 868
+localparam HALF_PERIOD    = BIT_PERIOD / 2;       // 434
+localparam LAST_BIT       = 7;
 // ======================================================
 //
 //          Logic
@@ -48,11 +53,6 @@ logic       tx_empty_clr;
 
 logic [1:0] init    = 0;
 logic       init_en;
-localparam CLK_FREQ       = 100_000_000;
-localparam BAUD_RATE      = 115200;
-localparam BIT_PERIOD     = CLK_FREQ / BAUD_RATE; // 868
-localparam HALF_PERIOD    = BIT_PERIOD / 2;       // 434
-localparam LAST_BIT       = 7;
 localparam TX_STATE_HOLD  = 0;
 localparam TX_STATE_NEXT  = 1;
 localparam TX_STATE_START = 2;

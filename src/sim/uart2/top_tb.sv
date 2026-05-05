@@ -303,6 +303,8 @@ class Driver;
     task automatic run_rx();
     
         forever begin
+
+            //$display("rx_run start, num = %d, time [%t]",num_trans_rx, $realtime);
         
             gen2drv_rx.get(rx_tr_drv);
             
@@ -321,6 +323,8 @@ class Driver;
             #(UART_CYCLE) rxc = 1;
             
             num_trans_rx++;
+            
+            //$display("rx_run done, num = %d, time [%t]",num_trans_rx, $realtime);
         
         end
     
@@ -379,8 +383,8 @@ class Scoreboard;
             mnt2scb_tx.get(tx_data_shift);
             if(tx_tr_scb.data !== tx_data_shift) begin
             
-                $display("INFO: Error: tx_data doesn`t match, trans ID = %d", tx_tr_scb.id);
-                $display("      Sent data = %h, Received = %h",tx_tr_scb.data,tx_data_shift);
+                /*$display("INFO: Error: tx_data doesn`t match, trans ID = %d", tx_tr_scb.id);
+                $display("      Sent data = %h, Received = %h",tx_tr_scb.data,tx_data_shift);*/
                 err++;
                 
             end
@@ -394,6 +398,8 @@ class Scoreboard;
     task automatic check_rx();
     
         forever begin
+
+            //$display("rx_check start, num = %d, time [%t]",num_trans_rx, $realtime);
     
             gen2scb_rx.get(rx_tr_scb);
             mnt2scb_rx.get(rx_data_rcvd);
@@ -404,13 +410,15 @@ class Scoreboard;
             
             if(rx_tr_scb.data !== rx_reversed_data) begin
             
-                $display("INFO: Error: rx_data doesn`t match, trans ID = %d", rx_tr_scb.id);
-                $display("      Sent data = %h, Received = %h",rx_tr_scb.data,rx_reversed_data);
+                /*$display("INFO: Error: rx_data doesn`t match, trans ID = %d", rx_tr_scb.id);
+                $display("      Sent data = %h, Received = %h",rx_tr_scb.data,rx_reversed_data);*/
                 err++;
             
             end
             
             num_trans_rx++;
+            
+            //$display("rx_check done, num = %d, time [%t]",num_trans_rx, $realtime);
         
         end
     
@@ -480,13 +488,15 @@ class Monitor;
         forever begin
             @(posedge rx_complete) begin
             
+            //$display("rx_rden_send start[%t]", $realtime);
                 gen2mnt_rx.get(rden_delay_mnt);
     
                 if(rden_delay_mnt > UART_CYCLE) begin
                     overrun_flag = 1;
                 end
                 
-                $display("INFO: rden_delay = %d", rden_delay_mnt);
+                /*$display("INFO: rden_delay = %d", rx_mnt_dels.rden_delay);
+                $display("INFO: send_delay = %d", rx_mnt_dels.send_delay);*/
 
                 #(rden_delay_mnt*CLK_CYCLE);
                 
@@ -497,6 +507,8 @@ class Monitor;
                     reset_err();
     
             end
+            
+            //$display("rx_rden_send complete [%t]", $realtime);
         end
         
     endtask

@@ -1,35 +1,71 @@
 `timescale 1ns / 1ps
+
 module uart_tb();
-
-localparam NUMBER_OF_TESTS = 100  ;
+//===================================================================================
+//
+//      Parameters
+//
+localparam NUMBER_OF_TESTS = 1000  ;
 localparam WORD            = 8   ;
-localparam NUM_TEST_LEN    = 9   ;
-
 localparam CLK_FREQ       = 100_000_000;
 localparam BAUD_RATE      = 115200;
 localparam BIT_PERIOD     = CLK_FREQ / BAUD_RATE;
 localparam HALF_PERIOD    = BIT_PERIOD / 2;
 localparam CLK_CYCLE      = 1_000_000_000/CLK_FREQ  ;
 localparam UART_CYCLE     = BIT_PERIOD*CLK_CYCLE;
-//---------------------------------------------
-typedef struct {
-    int zero_data        = 100;  // probability of data = 2'h00 (1%)
-    int send_del_exist   = 1000;  // probobility of delay existance before data sending (10%)
-    int send_del_dist    = 5000; // in range [0:5000] clk cycles
-    }
-    tx_random_t;
-    tx_random_t tx_cfg;
+//===================================================================================
+//
+//      Types
+//
+typedef struct 
+{
+    int zero_data        = 100;     // probability of data = 2'h00 (1%)
+    int send_del_exist   = 400;     // probobility of delay existance before data sending (4%)
+    int send_del_dist    = 10000;   // in range [0:10000] clk cycles
+}
+tx_random_t;
+tx_random_t tx_cfg;
 
-typedef struct {
-    int wrong_stop_exist = 200;  // probability of stop bit = 0 (2%)
-    int send_del_exist   = 200;  // probability of delay existance before data sending (2%)
-    int send_del_dist    = 10000;// in range [0:10000] clk cycles
-    int rden_del_exist   = 1000;  // probability of delay existance before rx_rden flag sending (10%)
-    int rden_del_dist    = 10000;// in range [0:10000] clk cycles
-    int zero_data        = 500;  // probability of data = 2'h00 (5%)
-    }
-    rx_random_t;
-    rx_random_t rx_cfg;
+typedef struct 
+{
+    int wrong_stop_exist = 200;     // probability of stop bit = 0 (2%)
+    int send_del_exist   = 1000;    // probability of delay existance before data sending (10%)
+    int send_del_dist    = 20000;   // in range [0:20000] clk cycles
+    int rden_del_exist   = 800;     // probability of delay existance before rx_rden flag sending (8%)
+    int rden_del_dist    = 20000;   // in range [0:15000] clk cycles
+    int zero_data        = 600;     // probability of data = 2'h00 (6%)
+}
+rx_random_t;
+rx_random_t rx_cfg;
+
+typedef struct 
+{ 
+    logic [7:0] data;
+    int         data_delay;  
+    int         id;
+} 
+tx_trans_t;
+
+typedef struct 
+{ 
+    logic [7:0] data;
+    int         rden_delay;
+    int         send_delay;
+    int         id;
+    bit         stop_bit;
+} 
+rx_trans_t;
+
+typedef struct
+{
+    int rden_delay;
+    int send_delay;
+}
+mnt_dels_t;
+//===================================================================================
+//
+//      Signals
+//
 //---------------------------------------------
 // UART interface
 
@@ -47,96 +83,541 @@ logic            rx_complete;
 logic            frame_error;
 logic            overrun;
 //---------------------------------------------
-// Declaration internal signals
+// Internal signals
 
-logic [ WORD-1:0] tx_array_sent     [NUMBER_OF_TESTS-1:0] = '{default: 0};
-logic [ WORD-1:0] rx_array_sent     [NUMBER_OF_TESTS-1:0] = '{default: 0};
-logic [ WORD-1:0] tx_array_received [NUMBER_OF_TESTS-1:0] = '{default: 0};
-logic [ WORD-1:0] rx_array_received [NUMBER_OF_TESTS-1:0] = '{default: 0};
-logic [ WORD-1:0] tx_rand_data;
-logic [ WORD-1:0] rx_reversed_data;
-logic [  WORD:0 ] rx_rand_data;
-logic [    7:0  ] tx_data_shift;
-
-logic             overrun_flag       = 0;
-logic             baud_pulse         = 0;
-
-int               rx_send_data_delay = 0;
-int               rx_rden_delay      = 0;
-int               tx_send_data_delay = 0;
-int               tx_arr_sent_index  = 0;
-int               tx_arr_rcvd_index  = 0;
-int               rx_arr_sent_index  = 0;
-int               rx_arr_rcvd_index  = 0;
-int               err                = 0;
+logic            overrun_flag       = 0;
+logic            baud_pulse         = 0;
+int              err                = 0;
 //===================================================================================
-// Class tx random
+//
+//      Class Generator
+//
+class Generator;
+    //------------------------------------------------------
+    class Tx_trans;
+    
+        static int     count = 0;
+        int            id;
+        
+        int            zero_data;
+        int            send_del_exist;
+        int            send_del_dist;
+    
+        rand bit       send_del;
+        rand int       data_delay;
+        rand bit [7:0] data;
+    
+        function new(tx_random_t tx_cfg);
+            
+            id             = count++;
+            
+            zero_data      = tx_cfg.zero_data;
+            send_del_exist = tx_cfg.send_del_exist;
+            send_del_dist  = tx_cfg.send_del_dist;
+            
+        endfunction
+    
+        constraint cst
+        {
+            data       inside {[0:255          ]};
+            data_delay inside {[0:send_del_dist]};
+            
+            data        dist  {0 := (zero_data/100)               , [1:255] := (100 - (zero_data/100))};
+            send_del    dist  {0 := (100 - send_del_exist/100)    , 1       := (send_del_exist/100)   };
+            
+            (send_del==0) -> (data_delay==0);
+            solve send_del before data_delay;          
+            
+        }
+    
+    endclass
+    //------------------------------------------------------ 
+    class Rx_trans;
+    
+        static int     count = 0;
+        int            id;
+    
+        int            wrong_stop_exist;
+        int            send_del_exist;
+        int            send_del_dist;
+        int            rden_del_exist;
+        int            rden_del_dist;
+        int            zero_data;
+    
+        rand bit       stop_bit;
+        rand bit       wrong_rden;
+        rand bit       del_send;
+        rand int       send_delay;
+        rand int       rden_delay;
+        rand bit [7:0] data;
+    
+        function new(rx_random_t rx_cfg);
+            
+            id               = count++;
+            wrong_stop_exist = rx_cfg.wrong_stop_exist;
+            send_del_exist   = rx_cfg.send_del_exist;
+            send_del_dist    = rx_cfg.send_del_dist;
+            rden_del_exist   = rx_cfg.rden_del_exist;
+            rden_del_dist    = rx_cfg.rden_del_dist;
+            zero_data        = rx_cfg.zero_data;
+            
+        endfunction
+    
+        constraint cst
+        {
+            data       inside {[0:255          ]};
+            rden_delay inside {[0:rden_del_dist]};
+            send_delay inside {[0:send_del_dist]};
+    
+            stop_bit    dist  {0 := (wrong_stop_exist/100)        , 1       := (100 - wrong_stop_exist/100) };
+            wrong_rden  dist  {0 := (100 - (rden_del_exist/100))  , 1       := (rden_del_exist/100)         };
+            data        dist  {0 := (zero_data/100)               , [1:255] := (100 - (zero_data/100))      };
+            del_send    dist  {0 := (100 - (send_del_exist/100))  , 1       := (send_del_exist/100)         };
+            
+            (del_send == 0) -> (send_delay==0);
+            solve del_send before send_delay;
+            (wrong_rden==0) -> (rden_delay==0);
+            solve wrong_rden before rden_delay;
+        }
+    
+    endclass
+    //------------------------------------------------------
+    
+    Tx_trans tx_trans;
+    Rx_trans rx_trans;
 
-class txRandomizer;
-    int zero_data;
-    int send_del_exist;
-    int send_del_dist;
-
-    rand bit       send_del;
-    rand bit [7:0] data;
-    rand int       data_delay;
-
-    function new(tx_random_t tx_cfg);
-        zero_data      = tx_cfg.zero_data;
-        send_del_exist = tx_cfg.send_del_exist;
-        send_del_dist  = tx_cfg.send_del_dist;
+    mnt_dels_t rx_mnt_del;
+    tx_trans_t tx_tr_gen ;
+    rx_trans_t rx_tr_gen ;
+    
+    mailbox #(tx_trans_t) gen2drv_tx;
+    mailbox #(rx_trans_t) gen2drv_rx;
+    
+    mailbox #(tx_trans_t) gen2scb_tx;
+    mailbox #(rx_trans_t) gen2scb_rx;
+    
+    mailbox #(mnt_dels_t) gen2mnt_rx;
+    
+    function new(mailbox #(tx_trans_t) gen2drv_tx,
+                 mailbox #(rx_trans_t) gen2drv_rx,
+                 mailbox #(tx_trans_t) gen2scb_tx,
+                 mailbox #(rx_trans_t) gen2scb_rx,
+                 mailbox #(mnt_dels_t) gen2mnt_rx);
+    
+        this.gen2drv_tx = gen2drv_tx;
+        this.gen2drv_rx = gen2drv_rx;
+        this.gen2scb_tx = gen2scb_tx;
+        this.gen2scb_rx = gen2scb_rx;
+        this.gen2mnt_rx = gen2mnt_rx;
+        
     endfunction
+    
+    task automatic run();
+    
+        repeat (NUMBER_OF_TESTS) begin
+        
+            tx_trans = new(tx_cfg);
+            tx_trans.randomize();
+            rx_trans = new(rx_cfg);
+            rx_trans.randomize();
+            
+            if(!tx_trans.randomize()) $display("INFO: ERROR: tx_trans_randomization failed!");
+            if(!rx_trans.randomize()) $display("INFO: ERROR: rx_trans_randomization failed!");
+            
+            tx_tr_gen.data        = tx_trans.data;
+            tx_tr_gen.data_delay  = tx_trans.data_delay;
+            tx_tr_gen.id          = tx_trans.id;
+            
+            rx_tr_gen.data        = rx_trans.data;
+            rx_tr_gen.send_delay  = rx_trans.send_delay;
+            rx_tr_gen.rden_delay  = rx_trans.rden_delay;
+            rx_tr_gen.stop_bit    = rx_trans.stop_bit;
+            rx_tr_gen.id          = tx_trans.id;
+            
+            rx_mnt_del.rden_delay = rx_trans.rden_delay;
+            rx_mnt_del.send_delay = rx_trans.send_delay;
+            
+            
+            gen2drv_tx.put(tx_tr_gen );
+            gen2drv_rx.put(rx_tr_gen );
+            gen2scb_tx.put(tx_tr_gen );
+            gen2scb_rx.put(rx_tr_gen );
+            gen2mnt_rx.put(rx_mnt_del);
+            gen2mnt_rx.put(rx_mnt_del);
+            
+        end
+    
+    endtask
+    
+    
+endclass
+//===================================================================================
+//
+//      Class Driver
+//
+class Driver;
 
-    constraint cst
-    {
-        data       inside {[0:255          ]};
-        data_delay inside {[0:send_del_dist]};
+    int num_trans_tx;
+    int num_trans_rx;
+    
+    tx_trans_t tx_tr_drv;
+    rx_trans_t rx_tr_drv;
 
-        send_del   dist {0 := (100 - (send_del_exist/100)), 1 := (send_del_exist/100)};
-    }
+    mailbox #(tx_trans_t) gen2drv_tx;
+    mailbox #(rx_trans_t) gen2drv_rx;
+    
+    function new(mailbox #(tx_trans_t) gen2drv_tx,
+                 mailbox #(rx_trans_t) gen2drv_rx);
+    
+        this.gen2drv_tx = gen2drv_tx;
+        this.gen2drv_rx = gen2drv_rx;
+    
+    endfunction 
+    
+    task automatic run_tx();
+    
+        forever begin
+        
+            gen2drv_tx.get(tx_tr_drv);
+            
+            #(tx_tr_drv.data_delay*CLK_CYCLE);
+    
+             if(tx_empty) 
+                tx_data = tx_tr_drv.data;
+             else begin
+                wait(tx_empty);
+                tx_data = tx_tr_drv.data;
+             end
+    
+            @(posedge clk) tx_wren = 1;
+            @(posedge clk) tx_wren = 0;
+    
+            wait(tx_complete);
+            
+            num_trans_tx++;
+        
+        end
+    
+    endtask
+    
+    task automatic run_rx();
+    
+        forever begin
+
+            //$display("rx_run start, num = %d, time [%t]",num_trans_rx, $realtime);
+        
+            gen2drv_rx.get(rx_tr_drv);
+            
+            #(rx_tr_drv.send_delay*CLK_CYCLE);
+    
+            wait(baud_pulse);
+            rxc = 0;
+    
+            for(int i=0; i<WORD; i++) begin
+                #(UART_CYCLE);
+                rxc = rx_tr_drv.data[i];
+            end
+            
+            #(UART_CYCLE) rxc = rx_tr_drv.stop_bit;
+            
+            #(UART_CYCLE) rxc = 1;
+            #(UART_CYCLE);
+            
+            num_trans_rx++;
+            
+            //$display("rx_run done, num = %d, time [%t]",num_trans_rx, $realtime);
+        
+        end
+    
+    endtask
+    
+    task automatic run();
+    
+        fork
+        
+            run_tx();
+            run_rx();
+        
+        join
+    
+    endtask
 
 endclass
+//===================================================================================
+//
+//      Class Scoreboard
+//
+class Scoreboard;
+
+    int         num_trans_tx;
+    int         num_trans_rx;
+    
+    logic [7:0] tx_data_shift;
+    logic [7:0] rx_data_rcvd;
+    logic [7:0] rx_reversed_data;
+    
+    tx_trans_t tx_tr_scb;
+    rx_trans_t rx_tr_scb;
+
+    mailbox #(tx_trans_t ) gen2scb_tx;
+    mailbox #(rx_trans_t ) gen2scb_rx;
+    mailbox #(logic [7:0]) mnt2scb_tx;
+    mailbox #(logic [7:0]) mnt2scb_rx;
+    
+    function new(mailbox #(tx_trans_t ) gen2scb_tx,
+                 mailbox #(rx_trans_t ) gen2scb_rx,
+                 mailbox #(logic [7:0]) mnt2scb_tx,
+                 mailbox #(logic [7:0]) mnt2scb_rx);
+    
+        this.gen2scb_tx = gen2scb_tx;
+        this.gen2scb_rx = gen2scb_rx;
+        this.mnt2scb_tx = mnt2scb_tx;
+        this.mnt2scb_rx = mnt2scb_rx;
+    
+    endfunction
+    
+    task automatic check_tx();
+    
+        forever begin
+        
+            gen2scb_tx.get(tx_tr_scb);
+            mnt2scb_tx.get(tx_data_shift);
+            if(tx_tr_scb.data !== tx_data_shift) begin
+            
+                /*$display("INFO: Error: tx_data doesn`t match, trans ID = %d", tx_tr_scb.id);
+                $display("      Sent data = %h, Received = %h",tx_tr_scb.data,tx_data_shift);*/
+                err++;
+                
+            end
+            
+            num_trans_tx++;
+        
+        end
+        
+    endtask
+    
+    task automatic check_rx();
+    
+        forever begin
+
+            //$display("rx_check start, num = %d, time [%t]",num_trans_rx, $realtime);
+    
+            gen2scb_rx.get(rx_tr_scb);
+            mnt2scb_rx.get(rx_data_rcvd);
+            
+            for(int i=0; i<WORD; i++) begin
+                rx_reversed_data[i] = rx_data_rcvd[7-i];
+            end
+            
+            if(rx_tr_scb.data !== rx_reversed_data) begin
+            
+                /*$display("INFO: Error: rx_data doesn`t match, trans ID = %d", rx_tr_scb.id);
+                $display("      Sent data = %h, Received = %h",rx_tr_scb.data,rx_reversed_data);*/
+                err++;
+            
+            end
+            
+            num_trans_rx++;
+            
+            //$display("rx_check done, num = %d, time [%t]",num_trans_rx, $realtime);
+        
+        end
+    
+    endtask
+    
+    task automatic run();
+        
+        fork
+            
+            check_tx();
+            check_rx();
+        
+        join
+    
+    endtask
+
+endclass
+//===================================================================================
+//
+//      Class Monitor
+//
+class Monitor;
+
+    int         num_trans_tx;
+    int         num_trans_rx;
+    
+    mnt_dels_t  rx_mnt_dels;
+    logic [7:0] tx_data_mnt;
+    logic [7:0] rx_data_mnt;
+
+    mailbox #(logic [7:0]) mnt2scb_tx;
+    mailbox #(logic [7:0]) mnt2scb_rx;
+    mailbox #(mnt_dels_t ) gen2mnt_rx;
+    
+    function new(mailbox #(logic [7:0]) mnt2scb_tx,
+                 mailbox #(logic [7:0]) mnt2scb_rx,
+                 mailbox #(mnt_dels_t ) gen2mnt_rx);
+    
+        this.mnt2scb_tx = mnt2scb_tx;
+        this.mnt2scb_rx = mnt2scb_rx;
+        this.gen2mnt_rx = gen2mnt_rx;
+    
+    endfunction 
+    
+    task automatic receive_rx();
+    
+        forever begin
+
+            @(posedge rx_complete, posedge overrun) begin
+                wait(baud_pulse);
+                mnt2scb_rx.put(rx_data);
+            end
+            
+            num_trans_rx++;
+        end
+    
+    endtask
+    
+    task automatic rx_rden_send();
+
+        forever begin
+
+            gen2mnt_rx.get(rx_mnt_dels);
+            
+            //$display("rx_rden_send start[%t]", $realtime);
+            
+            @(posedge rx_complete) begin
+
+                
+                /*$display("INFO: rden_delay = %d", rx_mnt_dels.rden_delay);
+                $display("INFO: send_delay = %d", rx_mnt_dels.send_delay);*/
+
+                #(rx_mnt_dels.rden_delay*CLK_CYCLE);
+                
+                @(posedge clk) rx_rden = 1;
+                @(posedge clk) rx_rden = 0;
+    
+                if(overrun | frame_error)
+                    reset_err();
+    
+            end
+            
+            //$display("rx_rden_send complete [%t]", $realtime);
+        end
+        
+    endtask
+    
+    task automatic receive_tx();
+        forever begin
+            wait(!txc);
+            #(UART_CYCLE+UART_CYCLE/2);
+    
+            for(int i=0; i<WORD; i++) begin
+                tx_data_mnt = {tx_data_mnt[6:0],txc};
+                #UART_CYCLE;
+            end
+    
+            mnt2scb_tx.put(tx_data_mnt);
+            
+            num_trans_tx++;
+    
+        end
+    endtask
+    
+    task automatic reset_err();
+    
+        @(posedge clk) rst_err = 1;
+        @(posedge clk) rst_err = 0;
+        
+    endtask
+    
+    task automatic run();
+    
+        fork
+        
+            receive_rx();
+            rx_rden_send();
+            
+            receive_tx();
+            
+        join        
+        
+    endtask
+
+endclass 
+//===================================================================================
+//
+//      Class Environment
+//
+class Environment;
+
+    Generator   gen;
+    Driver      drv;
+    Monitor     mnt;
+    Scoreboard  scb;
+    
+    mailbox #(tx_trans_t ) gen2drv_tx;
+    mailbox #(rx_trans_t ) gen2drv_rx;
+    mailbox #(tx_trans_t ) gen2scb_tx;
+    mailbox #(rx_trans_t ) gen2scb_rx;
+    mailbox #(logic [7:0]) mnt2scb_tx;
+    mailbox #(logic [7:0]) mnt2scb_rx;
+    mailbox #(mnt_dels_t ) gen2mnt_rx;
+    
+    function new();
+    
+        gen2drv_tx = new();
+        gen2drv_rx = new();
+        gen2scb_tx = new();
+        gen2scb_rx = new();
+        mnt2scb_tx = new();
+        mnt2scb_rx = new();
+        gen2mnt_rx = new();
+        
+        gen = new(gen2drv_tx,gen2drv_rx,gen2scb_tx,gen2scb_rx,gen2mnt_rx);
+        drv = new(gen2drv_tx,gen2drv_rx);
+        mnt = new(mnt2scb_tx,mnt2scb_rx,gen2mnt_rx);
+        scb = new(gen2scb_tx,gen2scb_rx,mnt2scb_tx,mnt2scb_rx);
+        
+    endfunction;
+    
+    task automatic run();
+        
+        fork
+        
+            gen.run();
+            drv.run();
+            mnt.run();
+            scb.run();
+            
+        join_any
+        
+        run_wait_end();
+        
+        if(!err) $display("\033[32mINFO: Test succeed!\033[0m");
+        else $display("\033[31mINFO: Test failed! Number of error = %d \033[0m", err);
+        
+        $finish;
+        
+    endtask
+    
+    task automatic run_wait_end();
+    
+        fork
+            
+            wait(scb.num_trans_tx == NUMBER_OF_TESTS);
+            wait(mnt.num_trans_tx == NUMBER_OF_TESTS);
+            wait(scb.num_trans_rx == NUMBER_OF_TESTS);
+            wait(mnt.num_trans_rx == NUMBER_OF_TESTS);
+        
+        join
+        
+    endtask
+
+endclass
+    
+//===================================================================================
 //--------------------------------------------
-// Class rx random
-
-class rxRandomizer;
-    int wrong_stop_exist;
-    int send_del_exist;
-    int send_del_dist;
-    int rden_del_exist;
-    int rden_del_dist;
-    int zero_data;
-
-    rand bit       stop_bit;
-    rand bit       send_del;
-    rand bit       wrong_rden;
-    rand int       send_delay;
-    rand int       rden_delay;
-    rand bit [7:0] data;
-
-    function new(rx_random_t rx_cfg);
-        wrong_stop_exist = rx_cfg.wrong_stop_exist;
-        send_del_exist   = rx_cfg.send_del_exist;
-        send_del_dist    = rx_cfg.send_del_dist;
-        rden_del_exist   = rx_cfg.rden_del_exist;
-        rden_del_dist    = rx_cfg.rden_del_dist;
-        zero_data        = rx_cfg.zero_data;
-    endfunction
-
-    constraint cst
-    {
-        data       inside {[0:255          ]};
-        rden_delay inside {[0:rden_del_dist]};
-        send_delay inside {[0:send_del_dist]};
-
-        stop_bit    dist {0 := (wrong_stop_exist/100)        , 1 := (100 - wrong_stop_exist/100) };
-        send_del    dist {0 := (100 - (send_del_exist/100))  , 1 := (send_del_exist/100)         };
-        wrong_rden  dist {0 := (100 - (rden_del_exist/100))  , 1 := (rden_del_exist/100)         };
-        data        dist {0 := (zero_data/100)               , [1:255] := (100 - (zero_data/100))};
-    }
-
-endclass
-//===================================================================================
 // Generator 100 MHz
 
 initial begin
@@ -154,282 +635,39 @@ initial begin
     end
 end
 //--------------------------------------------
-// Body of tester
+// Initialization
+
+task automatic init();
+    
+    tx_data = 8'h00;
+    rxc     = 1;
+    tx_wren = 0;
+    rx_rden = 0;
+    rst_err = 0;
+    
+    #UART_CYCLE;
+    
+endtask
+//--------------------------------------------
+// Test
+
+Environment env;
 
 initial begin
 
+    env = new();
+    
     init();
-
-    fork
-
-    begin
-        repeat (NUMBER_OF_TESTS) begin
-            tx_driver();
-        end
-    end
-    begin
-        rx_driver();
-    end
-
-    join
-
-    check_data();
-    print_result();
-
-    $finish;
+    
+    env.run();
 
 end
 
 //===================================================================================
-//--------------------------------------------
-// Tx_randomizer
-
-task automatic tx_randomizer();
-    begin
-    txRandomizer tx_obj = new(tx_cfg);
-
-    tx_obj.randomize();
-
-    tx_rand_data       = tx_obj.data;
-    tx_send_data_delay = 0;
-    if(tx_obj.send_del)
-        tx_send_data_delay = tx_obj.data_delay;
-    end
-endtask
-//--------------------------------------------
-// Rx_randomizer
-
-task automatic rx_randomizer();
-    begin
-    rxRandomizer rx_obj = new(rx_cfg);
-
-    rx_obj.randomize();
-
-    rx_rand_data       = {rx_obj.stop_bit,rx_obj.data[7:0]};
-    rx_send_data_delay = 0;
-    rx_rden_delay      = 0;
-    if(rx_obj.send_del)
-        rx_send_data_delay = rx_obj.send_delay;
-    if(rx_obj.wrong_rden)
-        rx_rden_delay      = rx_obj.rden_delay;
-    end
-endtask
-//===================================================================================
-// TX driver
-
-task automatic tx_driver();
-    fork
-    begin
-        repeat (NUMBER_OF_TESTS) begin
-            tx_randomizer();
-            tx_send_data(tx_rand_data,tx_send_data_delay);
-            tx_array_sent[tx_arr_sent_index] = tx_rand_data;
-            tx_arr_sent_index                = tx_arr_sent_index + 1;
-        end
-    end
-    begin
-        repeat (NUMBER_OF_TESTS) begin
-            receive_txc();
-        end
-    end
-    join_none
-    wait (tx_arr_rcvd_index == NUMBER_OF_TESTS);
-endtask
-//--------------------------------------------
-// RX driver
-
-task automatic rx_driver();
-    fork
-    begin
-        repeat (NUMBER_OF_TESTS) begin
-            rx_randomizer();
-            reverse_data(rx_rand_data);
-            rx_send_data(rx_rand_data,rx_send_data_delay);
-            rx_array_sent[rx_arr_sent_index] = rx_reversed_data;
-            rx_arr_sent_index                = rx_arr_sent_index + 1;
-        end
-    end
-    begin
-        repeat (NUMBER_OF_TESTS) begin
-            receive_rx_data(rx_rand_data);
-        end
-    end
-    begin
-        repeat (NUMBER_OF_TESTS) begin
-            rx_rden_send(rx_rden_delay);
-        end
-    end
-    join_none
-    wait (rx_arr_sent_index == NUMBER_OF_TESTS);
-endtask
-//===================================================================================
-// Sending tx data
-
-task automatic tx_send_data(input [7:0] tx_rand_data, input int tx_send_data_delay);
-    begin
-        #(tx_send_data_delay*CLK_CYCLE);
-
-         if(tx_empty) tx_data = tx_rand_data;
-         else begin
-            wait(tx_empty);
-            tx_data = tx_rand_data;
-         end
-
-        @(posedge clk) tx_wren = 1;
-        @(posedge clk) tx_wren = 0;
-
-        wait(tx_complete);
-
-    end
-endtask
-//--------------------------------------------
-// Writting tx received data into array
-
-task automatic receive_txc();
-    begin
-        wait(!txc);
-        #(UART_CYCLE+UART_CYCLE/2);
-
-        for(int i=0; i<WORD; i++) begin
-            tx_data_shift = {tx_data_shift[6:0],txc};
-            #UART_CYCLE;
-        end
-
-        tx_array_received[tx_arr_rcvd_index] = tx_data_shift;
-        tx_arr_rcvd_index                    = tx_arr_rcvd_index + 1;
-
-    end
-endtask
-//--------------------------------------------
-// Sending rxc data
-
-task automatic rx_send_data(input [8:0] rx_rand_data, input int rx_send_data_delay);
-    begin
-        #(rx_send_data_delay*CLK_CYCLE);
-
-        wait(baud_pulse);
-        rxc = 0;
-
-        for(int i=0; i<WORD+1; i++) begin
-            #(UART_CYCLE);
-            rxc = rx_rand_data[i];
-        end
-        #(UART_CYCLE) rxc = 1;
-        if(!rx_rand_data[8]) #UART_CYCLE; // For correct detecting start bit
-
-        if(!rx_rand_data[8]) begin
-            if(!frame_error) $display("INFO : ! frame_error (num test = %d)", rx_arr_rcvd_index);
-            reset_err();
-        end
-    end
-endtask
-//--------------------------------------------
-// Writting rx received data into array
-
-task automatic receive_rx_data(input [8:0] rx_rand_data);
-    begin
-        if(!overrun_flag) begin
-            @(posedge rx_complete) begin
-                rx_array_received[rx_arr_rcvd_index] = rx_data;
-                rx_arr_rcvd_index                    = rx_arr_rcvd_index + 1;
-            end
-        end
-        else begin
-            @(posedge overrun) begin
-                rx_array_received[rx_arr_rcvd_index] = rx_data;
-                rx_arr_rcvd_index                    = rx_arr_rcvd_index + 1;
-            end
-            overrun_flag = 0;
-        end
-    end
-endtask
-
-//--------------------------------------------
-// Send rx_rd with delay
-
-task automatic rx_rden_send(input int rx_rden_delay);
-    begin
-        @(posedge rx_complete) begin
-
-            if(rx_rden_delay > UART_CYCLE)
-                overrun_flag = 1;
-
-            #(rx_rden_delay*CLK_CYCLE);
-
-            if(overrun) begin
-                reset_err();
-            end
-
-            @(posedge clk) rx_rden = 1;
-            @(posedge clk) rx_rden = 0;
-        end
-    end
-endtask
-//--------------------------------------------
-//Checking data
-
-task check_data;
-    begin
-        for(int i=0; i<NUMBER_OF_TESTS; i++) begin
-            if(tx_array_received[i] != tx_array_sent[i]) begin
-                $display("INFO (tx): Sent = %d, Received = %d (num test = %d)", tx_array_sent[i], tx_array_received[i], i);
-                error();
-            end
-            if(rx_array_received[i] != rx_array_sent[i]) begin
-                $display("INFO (rx): Sent = %d, Received = %d (num test = %d)", rx_array_sent[i], rx_array_received[i], i);
-                error();
-            end
-        end
-    end
-endtask
 //
-// Revercing data
-task automatic reverse_data(input [8:0] rx_rand_data);
-    begin
-        for(int i=0; i<WORD; i++) begin
-            rx_reversed_data[i] = rx_rand_data[7-i];
-        end
-    end
-endtask
-//--------------------------------------------
-// Reset errors
-
-task automatic reset_err();
-    begin
-        @(posedge clk) rst_err = 1;
-        @(posedge clk) rst_err = 0;
-    end
-endtask
-//--------------------------------------------
-// Initialization
-
-task init();
-    begin
-        rxc     = 1'b1;
-        rx_rden = 1'b0;
-        rst_err = 1'b0;
-        tx_wren = 1'b0;
-    end
-endtask
-//--------------------------------------------
-// Error
-
-task automatic error();
-
-    err = err + 1;
-
-endtask
-//--------------------------------------------
-// Print test result
-
-task print_result();
-
-    if(err) $display("INFO : Test failed! ");
-    else    $display("INFO : Test succeed!");
-
-endtask
-//===================================================================================
-uart    dut0
+//      Instances
+//
+uart dut0
 (
     .clk         ( clk         ),
     .txc         ( txc         ),
@@ -445,6 +683,6 @@ uart    dut0
     .overrun     ( overrun     ),
     .rst_err     ( rst_err     )
 );
-
+//===================================================================================
 endmodule
-
+//===================================================================================

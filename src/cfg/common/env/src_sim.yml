@@ -1,4 +1,4 @@
 
 sources:
-    - src/sim/top_tb.sv
+    - src/sim/uart2/top_tb.sv
 

@@ -616,8 +616,7 @@ class Environment;
             wait(scb.num_trans_rx == NUMBER_OF_TESTS);
             wait(mnt.num_trans_rx == NUMBER_OF_TESTS);
         
-        join_any
-        
+        join
         
     endtask
 

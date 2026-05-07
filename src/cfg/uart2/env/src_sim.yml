@@ -1,4 +1,13 @@
 
 sources:
+    - src/sim/uart2/clss/generator.svh
+    - src/sim/uart2/clss/transactions.svh
+    - src/sim/uart2/clss/driver.svh
+    - src/sim/uart2/clss/monitor.svh
+    - src/sim/uart2/clss/scoreboard.svh
+    - src/sim/uart2/clss/environment.svh
+    - src/sim/uart2/pkgs/params_pkg.svh
+    - src/sim/uart2/pkgs/trn_cfg_pkg.svh
+    - src/sim/uart2/pkgs/trn_structs_pkg.svh
     - src/sim/uart2/top_tb.sv
 

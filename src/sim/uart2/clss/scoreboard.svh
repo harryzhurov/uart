@@ -91,5 +91,5 @@ class Scoreboard;
     
     endtask
 
-endclass
+endclass : Scoreboard
 //===================================================================================

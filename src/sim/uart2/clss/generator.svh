@@ -2,6 +2,9 @@
 //
 //      Class Generator
 //
+import params_pkg     ::*;
+import trn_structs_pkg::*;
+
 class Generator;
  
     Tx_transaction tx_trn;
@@ -71,4 +74,4 @@ class Generator;
     endtask
     
     
-endclass
+endclass : Generator

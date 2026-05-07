@@ -67,5 +67,5 @@ class Environment;
         
     endtask
 
-endclass   
+endclass : Environment
 //===================================================================================

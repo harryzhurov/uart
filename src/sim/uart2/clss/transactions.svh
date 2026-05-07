@@ -4,11 +4,9 @@
 //
 class Tx_transaction;
 
-    Trans_cfg trn_cfg;
-
     static int          count = 0;
     int                 id;
-		       
+               
     rand bit            send_del;
     rand int            data_delay;
     rand bit [WORD-1:0] data;
@@ -24,21 +22,21 @@ class Tx_transaction;
         data       inside {[0:255             ]};
         data_delay inside {[0:send_del_dist_tx]};
         
-        data        dist  {0 := (zero_data_tx)               , [1:255] := (100 - (zero_data_tx)};
-        send_del    dist  {0 := (100 - send_del_exist_tx)    , 1       := (send_del_exist_tx)   };
+        data        dist  {0 := (zero_data_tx)            , [1:255] := (100 - zero_data_tx)  };
+        send_del    dist  {0 := (100 - send_del_exist_tx) , 1       := (send_del_exist_tx)   };
         
         (send_del==0) -> (data_delay==0);
         solve send_del before data_delay;          
         
     }
 
-endclass
+endclass : Tx_transaction
 //------------------------------------------------------ 
 class Rx_transaction;
 
     static int          count = 0;
     int                 id;
-		       
+               
     rand bit            stop_bit;
     rand bit            wrong_rden;
     rand bit            del_send;
@@ -58,10 +56,10 @@ class Rx_transaction;
         rden_delay inside {[0:rden_del_dist_rx]};
         send_delay inside {[0:send_del_dist_rx]};
 
-        stop_bit    dist  {0 := (wrong_stop_exist_rx)       , 1       := (100 - wrong_stop_exist_rx) };
-        wrong_rden  dist  {0 := (100 - (rden_del_exist_rx)  , 1       := (rden_del_exist_rx)         };
-        data        dist  {0 := (zero_data_rx)              , [1:255] := (100 - (zero_data_rx))      };
-        del_send    dist  {0 := (100 - (send_del_exist_rx)  , 1       := (send_del_exist_rx)         };
+        stop_bit    dist  {0 := (wrong_stop_exist_rx)     , 1       := (100 - wrong_stop_exist_rx) };
+        wrong_rden  dist  {0 := (100 - rden_del_exist_rx) , 1       := (rden_del_exist_rx)         };
+        data        dist  {0 := (zero_data_rx)            , [1:255] := (100 - zero_data_rx)        };
+        del_send    dist  {0 := (100 - send_del_exist_rx) , 1       := (send_del_exist_rx)         };
         
         (del_send == 0) -> (send_delay==0);
         solve del_send before send_delay;
@@ -69,4 +67,4 @@ class Rx_transaction;
         solve wrong_rden before rden_delay;
     }
 
-endclass
+endclass : Rx_transaction

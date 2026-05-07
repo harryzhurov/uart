@@ -4,6 +4,9 @@ package trn_structs_pkg;
 //
 //      Structs
 //
+
+import params_pkg::*;
+
 typedef struct 
 { 
     logic [WORD-1:0] data;

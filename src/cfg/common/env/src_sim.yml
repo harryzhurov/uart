@@ -1,4 +1,14 @@
 
 sources:
+    - src/sim/uart2/pkgs/params_pkg.sv
+    - src/sim/uart2/pkgs/trn_cfg_pkg.sv
+    - src/sim/uart2/pkgs/trn_structs_pkg.sv
+    - src/sim/uart2/clss/transactions.sv
+    - src/sim/uart2/clss/generator.sv
+    - src/sim/uart2/clss/driver.sv
+    - src/sim/uart2/clss/monitor.sv
+    - src/sim/uart2/clss/scoreboard.sv
+    - src/sim/uart2/clss/environment.sv
+    - src/sim/uart2/pkgs/tb_components_pkg.sv
     - src/sim/uart2/top_tb.sv
 

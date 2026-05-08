@@ -1,0 +1,10 @@
+
+import : board main
+
+parameters:
+    REF_CLK             : = board.OSC_FREQ              # MHz
+    MAIN_CLK            : 125                           # MHz   
+                        
+    REF_CLK_PERIOD      : = str(1e3/REF_CLK)
+    REF_CLK_HALF_PERIOD : = str(1e3/REF_CLK/2)
+

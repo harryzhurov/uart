@@ -1,14 +1,14 @@
 
 sources:
-    - src/sim/uart2/pkgs/params_pkg.sv
-    - src/sim/uart2/pkgs/trn_cfg_pkg.sv
-    - src/sim/uart2/pkgs/trn_structs_pkg.sv
-    - src/sim/uart2/clss/transactions.sv
-    - src/sim/uart2/clss/generator.sv
-    - src/sim/uart2/clss/driver.sv
-    - src/sim/uart2/clss/monitor.sv
-    - src/sim/uart2/clss/scoreboard.sv
-    - src/sim/uart2/clss/environment.sv
-    - src/sim/uart2/pkgs/tb_components_pkg.sv
-    - src/sim/uart2/top_tb.sv
+    - src/sim/uart_tx/pkgs/params_pkg.sv
+    - src/sim/uart_tx/pkgs/trn_cfg_pkg.sv
+    - src/sim/uart_tx/pkgs/trn_structs_pkg.sv
+    - src/sim/uart_tx/clss/transactions.sv
+    - src/sim/uart_tx/clss/generator.sv
+    - src/sim/uart_tx/clss/driver.sv
+    - src/sim/uart_tx/clss/monitor.sv
+    - src/sim/uart_tx/clss/scoreboard.sv
+    - src/sim/uart_tx/clss/environment.sv
+    - src/sim/uart_tx/pkgs/tb_components_pkg.sv
+    - src/sim/uart_tx/top_tb.sv
 

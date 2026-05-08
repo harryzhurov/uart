@@ -1,0 +1,7 @@
+
+import : main
+
+sources:
+    - src/syn/uart_rx/top.sv
+    - src/syn/uart_rx/uart.sv
+

@@ -1,0 +1,9 @@
+
+sources:
+    - src/sim/uart_rx/pkgs/params_pkg.sv
+    - src/sim/uart_rx/pkgs/trn_cfg_pkg.sv
+    - src/sim/uart_rx/pkgs/trn_structs_pkg.sv
+    - src/sim/uart_rx/pkgs/tb_components_pkg.sv
+    - src/sim/uart_rx/uart_if.sv
+    - src/sim/uart_rx/top_tb.sv
+

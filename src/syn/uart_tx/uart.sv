@@ -129,9 +129,7 @@ end
 //
 always_ff @(posedge clk) begin
     if(init_en) begin
-    
         txc <= 1'b1;
-    
     end
     case (tx_state)
     TX_IDLE: begin

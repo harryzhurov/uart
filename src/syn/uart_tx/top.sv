@@ -65,7 +65,6 @@ outs_t outs;
 always_ff @(posedge clk) begin
     tx_data               <= inps.tx_data;
     tx_wren               <= inps.tx_wren;
-
     inps[0]               <= inp;
     inps[$bits(inps)-1:1] <= inps[$bits(inps)-2:0];
 end

@@ -167,7 +167,7 @@ always_ff @(posedge clk) begin
         tx_stat <= TX_STATE_HOLD;
         if (baud_tick) begin
             txc <= 1'b1;
-            if (tx_empty == 1'b0) begin
+            if (!tx_empty) begin
                 tx_shift     <= tx_buffer;
                 tx_stat      <= TX_STATE_START;
             end else begin

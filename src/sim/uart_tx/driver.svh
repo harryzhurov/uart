@@ -37,8 +37,8 @@ class Driver;
     
             @(posedge uif.clk) uif.tx_wren = 1;
             @(posedge uif.clk) uif.tx_wren = 0;
-    
-            wait(uif.tx_complete);
+
+            #20ns;
             
             num_trn_tx++;
         

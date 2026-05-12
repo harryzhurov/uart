@@ -22,20 +22,21 @@ localparam BAUD_RATE      = 115200;
 localparam BIT_PERIOD     = CLK_FREQ / BAUD_RATE; // 868
 localparam HALF_PERIOD    = BIT_PERIOD / 2;       // 434
 localparam LAST_BIT       = 7;
+localparam WORD           = 8;
 // ======================================================
 //
 //          Logic
 //
-logic [9:0] baud_cnt        = 0;
-logic [7:0] tx_buffer       = 0;
-logic [7:0] tx_shift        = 0;
-logic [3:0] tx_bit_cnt      = 0;
-logic       baud_tick;
-logic       start_detected;
-logic       tx_empty_clr;
+logic [     9:0] baud_cnt        = 0;
+logic [WORD-1:0] tx_buffer       = 0;
+logic [WORD-1:0] tx_shift        = 0;
+logic [     3:0] tx_bit_cnt      = 0;
+logic            baud_tick;
+logic            start_detected  = 0;
+logic            tx_empty_clr    = 0;
 
-logic [1:0] init    = 0;
-logic       init_en;
+logic [1:0]      init            = 0;
+logic            init_en         = 0;
 // ======================================================
 //
 //          Structs
@@ -47,7 +48,6 @@ typedef enum logic[1:0]
     TX_STATE_START
 }
 tx_stat_t;
-tx_stat_t tx_stat = TX_STATE_HOLD;
 
 typedef enum logic [1:0]
 {
@@ -57,11 +57,9 @@ typedef enum logic [1:0]
     TX_STOP
 }
 tx_state_t;
-
-tx_state_t tx_state = TX_IDLE;
 // ======================================================
 //
-//          Process
+//          Processes
 //
 //-------------------------------------------------------
 //
@@ -92,6 +90,10 @@ end
 //
 //  TX state machine manager
 //
+
+tx_stat_t  tx_stat  = TX_STATE_HOLD;
+tx_state_t tx_state = TX_IDLE;
+
 always_ff@(negedge clk) begin
     if(tx_stat == TX_STATE_HOLD) begin
     end
@@ -109,7 +111,7 @@ always_ff@(negedge clk) begin
 end
 //-------------------------------------------------------
 //
-//  Catch tx_wren
+//  Buffer logic
 //
 always_ff @(posedge clk) begin
     if(init_en) begin
@@ -125,13 +127,11 @@ always_ff @(posedge clk) begin
 end
 //-------------------------------------------------------
 //
-//  Body of Transmitter
+//  TX state machine
 //
 always_ff @(posedge clk) begin
     if(init_en) begin
-    
         txc <= 1'b1;
-    
     end
     case (tx_state)
     TX_IDLE: begin
@@ -139,12 +139,13 @@ always_ff @(posedge clk) begin
         tx_complete <= 1'b0;
         if (!tx_empty) begin
             tx_shift     <= tx_buffer;
+            tx_empty_clr <= 1'b1;
             tx_stat      <= TX_STATE_NEXT;
         end
     end
     TX_START: begin
-        tx_empty_clr <= 1'b1;
-        tx_stat     <= TX_STATE_HOLD;
+        tx_empty_clr <= 1'b0;
+        tx_stat      <= TX_STATE_HOLD;
         if (baud_tick) begin
             txc        <= 1'b0;
             tx_bit_cnt <= 4'd0;
@@ -153,7 +154,6 @@ always_ff @(posedge clk) begin
     end
     TX_DATA: begin
         tx_stat      <= TX_STATE_HOLD;
-        tx_empty_clr <= 1'b0;
         if (baud_tick) begin
             txc        <= tx_shift[7];
             tx_shift   <= {tx_shift[6:0],1'b0 };
@@ -167,8 +167,9 @@ always_ff @(posedge clk) begin
         tx_stat <= TX_STATE_HOLD;
         if (baud_tick) begin
             txc <= 1'b1;
-            if (tx_empty == 1'b0) begin
+            if (!tx_empty) begin
                 tx_shift     <= tx_buffer;
+                tx_empty_clr <= 1'b1;
                 tx_stat      <= TX_STATE_START;
             end else begin
                 tx_complete  <= 1'b1;
@@ -179,4 +180,5 @@ always_ff @(posedge clk) begin
     endcase
 end
 // ======================================================
-endmodule
+endmodule : uart
+// ======================================================

@@ -59,7 +59,7 @@ typedef enum logic [1:0]
 tx_state_t;
 // ======================================================
 //
-//          Process
+//          Processes
 //
 //-------------------------------------------------------
 //
@@ -93,6 +93,7 @@ end
 
 tx_stat_t  tx_stat  = TX_STATE_HOLD;
 tx_state_t tx_state = TX_IDLE;
+
 always_ff@(negedge clk) begin
     if(tx_stat == TX_STATE_HOLD) begin
     end
@@ -110,7 +111,7 @@ always_ff@(negedge clk) begin
 end
 //-------------------------------------------------------
 //
-//  Catch tx_wren
+//  Buffer logic
 //
 always_ff @(posedge clk) begin
     if(init_en) begin
@@ -126,7 +127,7 @@ always_ff @(posedge clk) begin
 end
 //-------------------------------------------------------
 //
-//  Body of Transmitter
+//  TX state machine
 //
 always_ff @(posedge clk) begin
     if(init_en) begin
@@ -179,4 +180,5 @@ always_ff @(posedge clk) begin
     endcase
 end
 // ======================================================
-endmodule
+endmodule : uart
+// ======================================================

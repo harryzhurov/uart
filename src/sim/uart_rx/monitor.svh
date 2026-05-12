@@ -28,13 +28,17 @@ class Monitor;
     task automatic receive_rx();
     
         forever begin
-
-            @(posedge uif.rx_complete, posedge uif.overrun) begin
-                wait(uif.baud_pulse);
-                mnt2scb_rx.put(uif.rx_data);
-            end
+            
+            #100ns;
+            @(uif.rx_data, posedge uif.rx_complete, posedge uif.overrun);
+            
+            mnt2scb_rx.put(uif.rx_data);
             
             num_trn_rx++;
+            
+            $display("monitor : time = [%t] num_tr_rx = %d", $time, num_trn_rx);
+            $display("monitor : data = %h", uif.rx_data);
+            
         end
     
     endtask

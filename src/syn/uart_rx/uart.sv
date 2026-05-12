@@ -142,7 +142,7 @@ always_ff @(posedge clk) begin
     RX_HALF: begin
         rx_stat     <= RX_STATE_HOLD;
         rx_timer_en <= 1;
-        if (rx_timer == HALF_PERIOD - 1) begin
+        if (rx_timer == HALF_PERIOD) begin
             rx_stat <= RX_STATE_IDLE;
             if (rxc_shift[2] == 1'b0) begin
                 rx_timer_en <= 0;
@@ -154,7 +154,7 @@ always_ff @(posedge clk) begin
     RX_DATA: begin
         rx_stat     <= RX_STATE_HOLD;
         rx_timer_en <= 1;
-        if (rx_timer == BIT_PERIOD - 1) begin
+        if (rx_timer == BIT_PERIOD) begin
             rx_shift    <= {rx_shift[6:0], rxc_shift[2]};
             rx_bit_cnt  <= rx_bit_cnt + 1;
             rx_timer_en <= 0;
@@ -167,7 +167,7 @@ always_ff @(posedge clk) begin
     RX_STOP: begin
         rx_stat     <= RX_STATE_HOLD;
         rx_timer_en <= 1;
-        if (rx_timer == BIT_PERIOD - 1) begin
+        if (rx_timer == BIT_PERIOD) begin
             if (!rxc_shift[2]) 
                 frame_error <= 1'b1;
             if ( rx_complete ) 

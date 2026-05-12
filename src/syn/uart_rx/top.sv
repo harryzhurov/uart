@@ -6,8 +6,6 @@
 //
 //-------------------------------------------------------------------------------
 
-`include "cfg_params.svh"
-
 module automatic top
 (
     input  logic clk,

@@ -28,20 +28,17 @@ localparam LAST_BIT       = 7;
 //
 //          Logic
 //
-logic [2:0] rxc_shift       = 0;
-logic [9:0] baud_cnt        = 0;
-logic [9:0] rx_timer        = 0;
-logic [3:0] rx_bit_cnt      = 0;
-logic [7:0] rx_shift        = 0;
-logic       rx_timer_en     = 0;
-logic       baud_tick;
-logic       rxc_delayed;
-logic       rxc_sync;
-logic       rxc_prev;
-logic       start_detected;
+logic [     2:0] rxc_shift       = 0;
+logic [     9:0] baud_cnt        = 0;
+logic [     9:0] rx_timer        = 0;
+logic [     3:0] rx_bit_cnt      = 0;
+logic [WORD-1:0] rx_shift        = 0;
+logic            rx_timer_en     = 0;
+logic            baud_tick;
+logic            start_detected;
 
-logic [1:0] init    = 0;
-logic       init_en;
+logic [     1:0] init            = 0;
+logic            init_en;
 // ======================================================
 //
 //          Structs

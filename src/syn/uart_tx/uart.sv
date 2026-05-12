@@ -26,16 +26,16 @@ localparam LAST_BIT       = 7;
 //
 //          Logic
 //
-logic [9:0] baud_cnt        = 0;
-logic [3:0] tx_bit_cnt      = 0;
-logic       baud_tick;
-logic       start_detected;
-logic       tx_empty_clr;
+logic [     9:0] baud_cnt        = 0;
 logic [WORD-1:0] tx_buffer       = 0;
 logic [WORD-1:0] tx_shift        = 0;
+logic [     3:0] tx_bit_cnt      = 0;
+logic            baud_tick;
+logic            start_detected  = 0;
+logic            tx_empty_clr    = 0;
 
-logic [1:0] init    = 0;
-logic       init_en;
+logic [1:0]      init            = 0;
+logic            init_en         = 0;
 // ======================================================
 //
 //          Structs

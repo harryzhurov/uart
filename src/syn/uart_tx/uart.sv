@@ -47,7 +47,6 @@ typedef enum logic[1:0]
     TX_STATE_START
 }
 tx_stat_t;
-tx_stat_t tx_stat = TX_STATE_HOLD;
 
 typedef enum logic [1:0]
 {
@@ -57,8 +56,6 @@ typedef enum logic [1:0]
     TX_STOP
 }
 tx_state_t;
-
-tx_state_t tx_state = TX_IDLE;
 // ======================================================
 //
 //          Process
@@ -92,6 +89,9 @@ end
 //
 //  TX state machine manager
 //
+
+tx_stat_t  tx_stat  = TX_STATE_HOLD;
+tx_state_t tx_state = TX_IDLE;
 always_ff@(negedge clk) begin
     if(tx_stat == TX_STATE_HOLD) begin
     end

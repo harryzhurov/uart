@@ -75,18 +75,6 @@ always_ff @(posedge clk) begin
     init[1] <= init[0];
     init_en <= init[0] && (!init[1]);
 end
-//-------------------------------------------------------
-//
-//  Generator of reference frequancy UART
-//
-always_ff @(posedge clk) begin
-    baud_cnt  <= baud_cnt + 1;
-    baud_tick <= 0;
-    if (baud_cnt == BIT_PERIOD - 1) begin
-        baud_cnt  <= 0;
-        baud_tick <= 1;
-    end
-end
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //
 //      Receiver (RX)

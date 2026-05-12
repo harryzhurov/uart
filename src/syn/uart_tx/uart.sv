@@ -22,6 +22,7 @@ localparam BAUD_RATE      = 115200;
 localparam BIT_PERIOD     = CLK_FREQ / BAUD_RATE; // 868
 localparam HALF_PERIOD    = BIT_PERIOD / 2;       // 434
 localparam LAST_BIT       = 7;
+localparam WORD           = 8;
 // ======================================================
 //
 //          Logic

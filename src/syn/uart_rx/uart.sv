@@ -35,7 +35,6 @@ logic [     9:0] rx_timer        = 0;
 logic [     3:0] rx_bit_cnt      = 0;
 logic [WORD-1:0] rx_shift        = 0;
 logic            rx_timer_en     = 0;
-logic            baud_tick;
 logic            start_detected;
 
 logic [     1:0] init            = 0;

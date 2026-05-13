@@ -29,8 +29,7 @@ class Monitor;
     
         forever begin
 
-            @(posedge uif.rx_complete, posedge uif.overrun) begin
-                wait(uif.baud_pulse);
+            @(uif.rx_data, posedge uif.rx_complete, posedge uif.overrun) begin
                 mnt2scb_rx.put(uif.rx_data);
             end
             

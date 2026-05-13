@@ -36,6 +36,10 @@ class Monitor;
             end
             
             num_trn_rx++;
+            
+            //$display("monitor : data received = %h", uif.rx_data);
+            //$display("monitor : Num transaction = %d", num_trn_rx);
+
         end
     
     endtask
@@ -51,8 +55,8 @@ class Monitor;
             @(posedge uif.rx_complete) begin
 
                 
-                /*$display("INFO: rden_delay = %d", rx_mnt_dels.rden_delay);
-                $display("INFO: send_delay = %d", rx_mnt_dels.send_delay);*/
+                //$display("INFO: rden_delay = %d", rx_mnt_dels.rden_delay);
+                //$display("INFO: send_delay = %d", rx_mnt_dels.send_delay);
 
                 #(rx_mnt_dels.rden_delay*CLK_CYCLE);
                 

@@ -9,18 +9,18 @@ class Scoreboard;
 
     data_t rx_reversed_data;
     
+    rx_trn_t   rx_tr_scb;
     logic [WORD-1:0] rx_data_rcvd;
     logic [WORD-1:0] rx_reversed_data;
+    mnt_rcvd_t mnt_data;
     
-    rx_trn_t rx_tr_scb;
-
-    mailbox #(    rx_trn_t    ) gen2scb_rx;
-    mailbox #(logic [WORD-1:0]) mnt2scb_rx;
+    mailbox #( rx_trn_t ) gen2scb_rx;
+    mailbox #(mnt_rcvd_t) mnt2scb_rx;
     
     virtual uart_if uif;
     
-    function new(mailbox #(    rx_trn_t    ) gen2scb_rx,
-                 mailbox #(logic [WORD-1:0]) mnt2scb_rx,
+    function new(mailbox #( rx_trn_t ) gen2scb_rx,
+                 mailbox #(mnt_rcvd_t) mnt2scb_rx,
                  virtual uart_if uif);
     
         this.gen2scb_rx = gen2scb_rx;
@@ -37,16 +37,16 @@ class Scoreboard;
             //$display("rx_check start, num = %d, time [%t]",num_trn_rx, $realtime);
     
             gen2scb_rx.get(rx_tr_scb);
-            mnt2scb_rx.get(rx_data_rcvd);
+            mnt2scb_rx.get(mnt_data );
             
             for(int i=0; i<WORD; i++) begin
-                rx_reversed_data[i] = rx_data_rcvd[WORD-1-i];
+                rx_reversed_data[i] = mnt_data.data[WORD-1-i];
             end
             
             if(rx_tr_scb.data !== rx_reversed_data) begin
             
-                /*$display("INFO: Error: rx_data doesn`t match, transaction ID = %d", rx_tr_scb.id);
-                $display("      Sent data = %h, Received = %h",rx_tr_scb.data,rx_reversed_data);*/
+                //$display("INFO: Error: rx_data doesn`t match, transaction ID = %d", rx_tr_scb.id);
+                //$display("      Sent data = %h, Received = %h",rx_tr_scb.data,rx_reversed_data);
                 err++;
             
             end

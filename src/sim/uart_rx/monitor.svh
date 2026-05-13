@@ -33,6 +33,8 @@ class Monitor;
                 mnt_data.frame_error = uif.frame_error;
                 mnt_data.overrun     = uif.overrun;
                 mnt2scb_rx.put(mnt_data);
+                if(uif.overrun | uif.frame_error)
+                    reset_err();
             end
             
             num_trn_rx++;
@@ -62,9 +64,6 @@ class Monitor;
                 
                 @(posedge uif.clk) uif.rx_rden = 1;
                 @(posedge uif.clk) uif.rx_rden = 0;
-    
-                if(uif.overrun | uif.frame_error)
-                    reset_err();
     
             end
             

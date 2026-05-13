@@ -27,25 +27,11 @@ localparam LAST_BIT       = 7;
 localparam WORD           = 8;
 // ======================================================
 //
-//          Logic
+//          Types
 //
-logic [     2:0] rxc_shift       = 0;
-logic [     9:0] baud_cnt        = 0;
-logic [     9:0] rx_timer        = 0;
-logic [     3:0] rx_bit_cnt      = 0;
-logic [WORD-1:0] rx_shift        = 0;
-logic            rx_timer_en     = 0;
-logic            baud_tick;
-logic            start_detected;
 
 typedef logic [WORD-1:0] data_t;
 
-logic [     1:0] init            = 0;
-logic            init_en;
-// ======================================================
-//
-//          Structs
-//
 typedef enum logic[1:0]
 {
     RX_STATE_HOLD,
@@ -62,8 +48,21 @@ typedef enum logic [1:0]
     RX_STOP
 }
 rx_state_t;
+// ======================================================
+//
+//          Logic
+//
+logic [2:0] rxc_shift       = 0;
+logic [9:0] baud_cnt        = 0;
+logic [9:0] rx_timer        = 0;
+logic [3:0] rx_bit_cnt      = 0;
 data_t      rx_shift        = 0;
+logic       rx_timer_en     = 0;
+logic       baud_tick       = 0;
+logic       start_detected  = 0;
 
+logic [1:0] init            = 0;
+logic       init_en         = 0;
 // ======================================================
 //
 //          Process

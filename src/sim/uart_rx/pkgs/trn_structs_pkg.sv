@@ -31,6 +31,17 @@ typedef struct
     int send_delay;
 }
 mnt_dels_t;
+
+typedef struct
+{
+
+    logic [WORD-1:0] data;
+    bit              frame_error;
+    bit              overrun;
+
+}
+mnt_rcvd_t;
+
 typedef logic [WORD-1:0] data_t;
 //===================================================================================
 endpackage

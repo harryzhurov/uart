@@ -38,6 +38,8 @@ logic            rx_timer_en     = 0;
 logic            baud_tick;
 logic            start_detected;
 
+typedef logic [WORD-1:0] data_t;
+
 logic [     1:0] init            = 0;
 logic            init_en;
 // ======================================================
@@ -61,6 +63,7 @@ typedef enum logic [1:0]
     RX_STOP
 }
 rx_state_t;
+data_t      rx_shift        = 0;
 
 rx_state_t rx_state = RX_IDLE;
 // ======================================================

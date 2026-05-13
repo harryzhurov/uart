@@ -31,5 +31,6 @@ typedef struct
     int send_delay;
 }
 mnt_dels_t;
+typedef logic [WORD-1:0] data_t;
 //===================================================================================
 endpackage

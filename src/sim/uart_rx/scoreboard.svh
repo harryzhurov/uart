@@ -6,6 +6,8 @@ class Scoreboard;
 
     int err        = 0;
     int num_trn_rx = 0;
+
+    data_t rx_reversed_data;
     
     logic [WORD-1:0] rx_data_rcvd;
     logic [WORD-1:0] rx_reversed_data;

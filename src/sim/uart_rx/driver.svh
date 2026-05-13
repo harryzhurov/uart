@@ -7,6 +7,7 @@ class Driver;
     virtual uart_if uif;
 
     int num_trn_rx;
+    data_t reversed_data;
     
     rx_trn_t rx_tr_drv;
 

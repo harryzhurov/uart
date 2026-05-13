@@ -10,8 +10,6 @@ class Scoreboard;
     data_t rx_reversed_data;
     
     rx_trn_t   rx_tr_scb;
-    logic [WORD-1:0] rx_data_rcvd;
-    logic [WORD-1:0] rx_reversed_data;
     mnt_rcvd_t mnt_data;
     
     mailbox #( rx_trn_t ) gen2scb_rx;

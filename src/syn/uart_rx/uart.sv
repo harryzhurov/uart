@@ -53,7 +53,6 @@ typedef enum logic[1:0]
     RX_STATE_IDLE
 }
 rx_stat_t;
-rx_stat_t rx_stat = RX_STATE_HOLD;
 
 typedef enum logic [1:0]
 {
@@ -65,7 +64,6 @@ typedef enum logic [1:0]
 rx_state_t;
 data_t      rx_shift        = 0;
 
-rx_state_t rx_state = RX_IDLE;
 // ======================================================
 //
 //          Process
@@ -87,6 +85,10 @@ end
 //
 //  RX state machine manage
 //
+
+rx_stat_t rx_stat   = RX_STATE_HOLD;
+rx_state_t rx_state = RX_IDLE;
+
 always_ff @(negedge clk) begin
      if(rx_stat == RX_STATE_HOLD) begin
      end

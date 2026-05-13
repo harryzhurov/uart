@@ -51,6 +51,9 @@ class Scoreboard;
             
             end
             
+            if(rx_tr_scb.stop_bit == mnt_data.frame_error)
+                err++;
+            
             num_trn_rx++;
             
             //$display("rx_check done, num = %d, time [%t]",num_trn_rx, $realtime);

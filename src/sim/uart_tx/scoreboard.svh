@@ -7,17 +7,17 @@ class Scoreboard;
     int err        = 0;
     int num_trn_tx = 0;
     
-    logic [WORD-1:0] tx_data_shift;
+    data_t tx_data_shift;
     
     tx_trn_t tx_tr_scb;
 
-    mailbox #(    tx_trn_t    ) gen2scb_tx;
-    mailbox #(logic [WORD-1:0]) mnt2scb_tx;
+    mailbox #(tx_trn_t) gen2scb_tx;
+    mailbox #( data_t ) mnt2scb_tx;
     
     virtual uart_if uif;
     
-    function new(mailbox #(    tx_trn_t    ) gen2scb_tx,
-                 mailbox #(logic [WORD-1:0]) mnt2scb_tx,
+    function new(mailbox #(tx_trn_t) gen2scb_tx,
+                 mailbox #( data_t ) mnt2scb_tx,
                  virtual uart_if uif);
     
         this.gen2scb_tx = gen2scb_tx;

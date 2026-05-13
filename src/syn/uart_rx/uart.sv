@@ -24,28 +24,14 @@ localparam BAUD_RATE      = 115200;
 localparam BIT_PERIOD     = CLK_FREQ / BAUD_RATE; // 868
 localparam HALF_PERIOD    = BIT_PERIOD / 2;       // 434
 localparam LAST_BIT       = 7;
+localparam WORD           = 8;
 // ======================================================
 //
-//          Logic
+//          Types
 //
-logic [2:0] rxc_shift       = 0;
-logic [9:0] baud_cnt        = 0;
-logic [9:0] rx_timer        = 0;
-logic [3:0] rx_bit_cnt      = 0;
-logic [7:0] rx_shift        = 0;
-logic       rx_timer_en     = 0;
-logic       baud_tick;
-logic       rxc_delayed;
-logic       rxc_sync;
-logic       rxc_prev;
-logic       start_detected;
 
-logic [1:0] init    = 0;
-logic       init_en;
-// ======================================================
-//
-//          Structs
-//
+typedef logic [WORD-1:0] data_t;
+
 typedef enum logic[1:0]
 {
     RX_STATE_HOLD,
@@ -53,7 +39,6 @@ typedef enum logic[1:0]
     RX_STATE_IDLE
 }
 rx_stat_t;
-rx_stat_t rx_stat = RX_STATE_HOLD;
 
 typedef enum logic [1:0]
 {
@@ -63,8 +48,21 @@ typedef enum logic [1:0]
     RX_STOP
 }
 rx_state_t;
+// ======================================================
+//
+//          Logic
+//
+logic [2:0] rxc_shift       = 0;
+logic [9:0] baud_cnt        = 0;
+logic [9:0] rx_timer        = 0;
+logic [3:0] rx_bit_cnt      = 0;
+data_t      rx_shift        = 0;
+logic       rx_timer_en     = 0;
+logic       baud_tick       = 0;
+logic       start_detected  = 0;
 
-rx_state_t rx_state = RX_IDLE;
+logic [1:0] init            = 0;
+logic       init_en         = 0;
 // ======================================================
 //
 //          Process
@@ -78,18 +76,6 @@ always_ff @(posedge clk) begin
     init[1] <= init[0];
     init_en <= init[0] && (!init[1]);
 end
-//-------------------------------------------------------
-//
-//  Generator of reference frequancy UART
-//
-always_ff @(posedge clk) begin
-    baud_cnt  <= baud_cnt + 1;
-    baud_tick <= 0;
-    if (baud_cnt == BIT_PERIOD - 1) begin
-        baud_cnt  <= 0;
-        baud_tick <= 1;
-    end
-end
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //
 //      Receiver (RX)
@@ -98,6 +84,10 @@ end
 //
 //  RX state machine manage
 //
+
+rx_stat_t rx_stat   = RX_STATE_HOLD;
+rx_state_t rx_state = RX_IDLE;
+
 always_ff @(negedge clk) begin
      if(rx_stat == RX_STATE_HOLD) begin
      end
@@ -156,7 +146,7 @@ always_ff @(posedge clk) begin
     RX_HALF: begin
         rx_stat     <= RX_STATE_HOLD;
         rx_timer_en <= 1;
-        if (rx_timer == HALF_PERIOD - 1) begin
+        if (rx_timer == HALF_PERIOD) begin
             rx_stat <= RX_STATE_IDLE;
             if (rxc_shift[2] == 1'b0) begin
                 rx_timer_en <= 0;
@@ -168,7 +158,7 @@ always_ff @(posedge clk) begin
     RX_DATA: begin
         rx_stat     <= RX_STATE_HOLD;
         rx_timer_en <= 1;
-        if (rx_timer == BIT_PERIOD - 1) begin
+        if (rx_timer == BIT_PERIOD) begin
             rx_shift    <= {rx_shift[6:0], rxc_shift[2]};
             rx_bit_cnt  <= rx_bit_cnt + 1;
             rx_timer_en <= 0;
@@ -181,7 +171,7 @@ always_ff @(posedge clk) begin
     RX_STOP: begin
         rx_stat     <= RX_STATE_HOLD;
         rx_timer_en <= 1;
-        if (rx_timer == BIT_PERIOD - 1) begin
+        if (rx_timer == BIT_PERIOD) begin
             if (!rxc_shift[2]) 
                 frame_error <= 1'b1;
             if ( rx_complete ) 

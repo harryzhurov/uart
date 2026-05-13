@@ -9,10 +9,10 @@ class Environment;
     Monitor     mnt;
     Scoreboard  scb;
     
-    mailbox #(    rx_trn_t    ) gen2drv_rx;
-    mailbox #(    rx_trn_t    ) gen2scb_rx;
-    mailbox #(logic [WORD-1:0]) mnt2scb_rx;
-    mailbox #(   mnt_dels_t   ) gen2mnt_rx;
+    mailbox #( rx_trn_t ) gen2drv_rx;
+    mailbox #( rx_trn_t ) gen2scb_rx;
+    mailbox #(mnt_rcvd_t) mnt2scb_rx;
+    mailbox #(mnt_dels_t) gen2mnt_rx;
     
     virtual uart_if uif;
     

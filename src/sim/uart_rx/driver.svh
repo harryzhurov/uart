@@ -6,7 +6,8 @@ class Driver;
 
     virtual uart_if uif;
 
-    int num_trn_rx;
+    int    num_trn_rx;
+    data_t reversed_data;
     
     rx_trn_t rx_tr_drv;
 
@@ -44,6 +45,13 @@ class Driver;
             #(UART_CYCLE);
             
             num_trn_rx++;
+            
+            for(int i = 0; i < WORD; ++i) begin
+                reversed_data[i] = rx_tr_drv.data[7-i];
+            end
+            
+            //$display("driver : data sent = %h", reversed_data);
+            //$display("driver : Num transaction = %d", num_trn_rx);
             
             //$display("rx_run done, num = %d, time [%t]",num_trn_rx, $realtime);
         

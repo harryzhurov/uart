@@ -8,16 +8,15 @@ class Monitor;
 
     int num_trn_rx;
 
-    logic [WORD-1:0] rx_data_mnt;
+    mnt_dels_t rx_mnt_dels;
+    mnt_rcvd_t mnt_data;
 
-    mnt_dels_t  rx_mnt_dels;
-
-    mailbox #(logic [WORD-1:0]) mnt2scb_rx;
-    mailbox #(   mnt_dels_t   ) gen2mnt_rx;
+    mailbox #(mnt_rcvd_t) mnt2scb_rx;
+    mailbox #(mnt_dels_t) gen2mnt_rx;
     
-    function new(mailbox #(logic [WORD-1:0]) mnt2scb_rx,
-                 mailbox #(   mnt_dels_t   ) gen2mnt_rx,
-                 virtual uart_if uif                  );
+    function new(mailbox #(mnt_rcvd_t) mnt2scb_rx,
+                 mailbox #(mnt_dels_t) gen2mnt_rx,
+                 virtual uart_if uif             );
     
         this.mnt2scb_rx = mnt2scb_rx;
         this.gen2mnt_rx = gen2mnt_rx;
@@ -29,12 +28,18 @@ class Monitor;
     
         forever begin
 
-            @(posedge uif.rx_complete, posedge uif.overrun) begin
-                wait(uif.baud_pulse);
-                mnt2scb_rx.put(uif.rx_data);
+            @(uif.rx_data, posedge uif.rx_complete, posedge uif.overrun) begin
+                mnt_data.data        = uif.rx_data;
+                mnt_data.frame_error = uif.frame_error;
+                mnt_data.overrun     = uif.overrun;
+                mnt2scb_rx.put(mnt_data);
             end
             
             num_trn_rx++;
+            
+            //$display("monitor : data received = %h", uif.rx_data);
+            //$display("monitor : Num transaction = %d", num_trn_rx);
+
         end
     
     endtask
@@ -50,8 +55,8 @@ class Monitor;
             @(posedge uif.rx_complete) begin
 
                 
-                /*$display("INFO: rden_delay = %d", rx_mnt_dels.rden_delay);
-                $display("INFO: send_delay = %d", rx_mnt_dels.send_delay);*/
+                //$display("INFO: rden_delay = %d", rx_mnt_dels.rden_delay);
+                //$display("INFO: send_delay = %d", rx_mnt_dels.send_delay);
 
                 #(rx_mnt_dels.rden_delay*CLK_CYCLE);
                 

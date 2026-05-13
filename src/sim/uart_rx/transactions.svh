@@ -17,21 +17,29 @@ class Rx_transaction;
         
     endfunction
 
-    constraint cst
+    constraint data_cnstr
     {
-        data       inside {[0:255             ]};
+        data       inside {[0:255]};
+
+        stop_bit    dist  {0 := (wrong_stop_exist_rx), 1       := (100 - wrong_stop_exist_rx) };
+        data        dist  {0 := (zero_data_rx)       , [1:255] := (100 - zero_data_rx)        };
+
+    }
+    
+    constraint delay_cnstr
+    {
+
         rden_delay inside {[0:rden_del_dist_rx]};
         send_delay inside {[0:send_del_dist_rx]};
 
-        stop_bit    dist  {0 := (wrong_stop_exist_rx)     , 1       := (100 - wrong_stop_exist_rx) };
-        wrong_rden  dist  {0 := (100 - rden_del_exist_rx) , 1       := (rden_del_exist_rx)         };
-        data        dist  {0 := (zero_data_rx)            , [1:255] := (100 - zero_data_rx)        };
-        del_send    dist  {0 := (100 - send_del_exist_rx) , 1       := (send_del_exist_rx)         };
+        wrong_rden  dist  {0 := (100 - rden_del_exist_rx) , 1 := (rden_del_exist_rx)};
+        del_send    dist  {0 := (100 - send_del_exist_rx) , 1 := (send_del_exist_rx)};
         
         (del_send == 0) -> (send_delay==0);
         solve del_send before send_delay;
         (wrong_rden==0) -> (rden_delay==0);
         solve wrong_rden before rden_delay;
+
     }
 
 endclass : Rx_transaction

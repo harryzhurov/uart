@@ -17,6 +17,49 @@ class Monitor;
     mailbox #(mnt_dels_t) gen2mnt_rx;
     mailbox #(  data_t  ) mnt2scb_tx;
     
+    covergroup rx_data_cg @(posedge vif.clk);
+        rx_data : coverpoint vif.rx_data
+        {
+            bins dat_0   = {    0    };
+            bins dat_63  = {[   1:63]};
+            bins dat_127 = {[ 64:127]};
+            bins dat_254 = {[128:254]};
+            bins dat_255 = {   255   };
+        }
+        rx_err_fr : coverpoint vif.frame_error
+        {
+            bins err_0 = {0};
+            bins err_1 = {1};
+        }
+        rx_err_run : coverpoint vif.overrun
+        {
+            bins err_0 = {0};
+            bins err_1 = {1};
+        }
+
+    endgroup
+    
+    covergroup rx_del_cg;
+        rx_rden_delay : coverpoint rx_mnt_dels.rden_delay
+        {
+            bins del_0  = { 0};
+            bins del_10 = {[1:10000]};
+            bins del_20 = {[10001:20000]};
+            bins del_30 = {[20000:30000]};
+        }
+    endgroup
+    
+    covergroup tx_data_cg @(posedge vif.clk);
+        tx_data : coverpoint tx_data_mnt
+        {
+            bins dat_0   = {    0    };
+            bins dat_63  = {[   1:63]};
+            bins dat_127 = {[ 64:127]};
+            bins dat_254 = {[128:254]};
+            bins dat_255 = {   255   };
+        }
+    endgroup
+    
     function new(mailbox #(mnt_rcvd_t) mnt2scb_rx,
                  mailbox #(mnt_dels_t) gen2mnt_rx,
                  mailbox #(  data_t  ) mnt2scb_tx,
@@ -26,8 +69,11 @@ class Monitor;
         this.gen2mnt_rx = gen2mnt_rx;
         this.mnt2scb_tx = mnt2scb_tx;
         this.vif        = vif;
-    
-    endfunction 
+        rx_data_cg      = new();
+        rx_del_cg       = new();
+        tx_data_cg      = new();
+
+    endfunction
     
     task automatic receive_rx();
     
@@ -38,6 +84,7 @@ class Monitor;
                 mnt_data.frame_error = vif.frame_error;
                 mnt_data.overrun     = vif.overrun;
                 mnt2scb_rx.put(mnt_data);
+                rx_data_cg.sample();
                 if(vif.overrun | vif.frame_error)
                     reset_err();
             end
@@ -62,7 +109,10 @@ class Monitor;
                 tx_data_mnt = {tx_data_mnt[WORD-2:0],vif.txc};
                 #UART_CYCLE;
             end
+            if(!vif.txc)
+                $display("INFO : ERROR (tx) : wrong stop bit");
 
+            tx_data_cg.sample();
             mnt2scb_tx.put(tx_data_mnt);
 
             num_trn_tx++;
@@ -91,6 +141,8 @@ class Monitor;
                 
                 @(posedge vif.clk) vif.rx_rden = 1;
                 @(posedge vif.clk) vif.rx_rden = 0;
+                
+                rx_del_cg.sample();
     
             end
             

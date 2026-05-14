@@ -7,9 +7,11 @@ class Rx_transaction;
     rand bit            stop_bit;
     rand bit            wrong_rden;
     rand bit            del_send;
+    rand bit            drop_rx;
     rand int            send_delay;
     rand int            rden_delay;
     rand bit [WORD-1:0] data;
+    rand int            drop_rx_del;
 
     function new();
         
@@ -19,10 +21,16 @@ class Rx_transaction;
 
     constraint data_cnstr
     {
-        data       inside {[0:255]};
+        data        inside {[0:255]};
+        drop_rx_del inside {[0:UART_CYCLE*10]};
 
         stop_bit    dist  {0 := (wrong_stop_exist_rx), 1       := (100 - wrong_stop_exist_rx)};
         data        dist  {0 := (zero_data_rx)       , [1:255] := (100 - zero_data_rx)       };
+        
+        drop_rx     dist  {0 := ( 100 - drop_rx_trn ), 1       := ( drop_rx_trn)             };
+        
+        (drop_rx==0) -> (drop_rx_del==0);
+        solve drop_rx before drop_rx_del;
 
     }
     
@@ -53,8 +61,10 @@ class Tx_transaction;
     int                 id;
 
     rand bit            send_del;
+    rand bit            drop_tx;
     rand int            data_delay;
     rand bit [WORD-1:0] data;
+    rand int            drop_tx_del;
 
     function new();
 
@@ -62,13 +72,24 @@ class Tx_transaction;
 
     endfunction
 
-    constraint cst
+    constraint data_cnstr
     {
-        data       inside {[0:255             ]};
+        data        inside {[0:255          ]};
+        drop_tx_del inside {[0:UART_CYCLE*10]};
+
+        data        dist  {0 := (zero_data_tx)       , [1:255] := (100 - zero_data_tx)};
+        drop_tx     dist  {0 := ( 100 - drop_tx_trn ), 1       := ( drop_tx_trn)      };
+        
+        (drop_tx==0) -> (drop_tx_del==0);
+        solve drop_tx before drop_tx_del;
+
+    }
+    
+    constraint delay_cnstr
+    {
         data_delay inside {[0:send_del_dist_tx]};
 
-        data        dist  {0 := (zero_data_tx)           , [1:255] := (100 - zero_data_tx)};
-        send_del    dist  {0 := (100 - send_del_exist_tx), 1       := (send_del_exist_tx) };
+        send_del    dist  {0 := (100 - send_del_exist_tx), 1 := (send_del_exist_tx)};
 
         (send_del==0) -> (data_delay==0);
         solve send_del before data_delay;

@@ -17,11 +17,11 @@ class Environment;
     mailbox #( tx_trn_t ) gen2scb_tx;
     mailbox #(  data_t  ) mnt2scb_tx;
     
-    virtual uart_if uif;
+    virtual uart_if vif;
     
-    function new(virtual uart_if uif);
+    function new(virtual uart_if vif);
 
-        this.uif   = uif;
+        this.vif   = vif;
     
         gen2drv_rx = new();
         gen2scb_rx = new();
@@ -31,10 +31,10 @@ class Environment;
         gen2scb_tx = new();
         mnt2scb_tx = new();
         
-        gen = new(gen2drv_rx,gen2scb_rx,gen2mnt_rx,gen2drv_tx,gen2scb_tx,uif);
-        drv = new(gen2drv_rx,gen2drv_tx,uif);
-        mnt = new(mnt2scb_rx,gen2mnt_rx,mnt2scb_tx,uif);
-        scb = new(gen2scb_rx,mnt2scb_rx,gen2scb_tx,mnt2scb_tx,uif);
+        gen = new(gen2drv_rx,gen2scb_rx,gen2mnt_rx,gen2drv_tx,gen2scb_tx);
+        drv = new(gen2drv_rx,gen2drv_tx,vif);
+        mnt = new(mnt2scb_rx,gen2mnt_rx,mnt2scb_tx,vif);
+        scb = new(gen2scb_rx,mnt2scb_rx,gen2scb_tx,mnt2scb_tx);
         
     endfunction;
     

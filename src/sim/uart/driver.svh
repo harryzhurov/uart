@@ -4,10 +4,10 @@
 //
 class Driver;
 
-    virtual uart_if uif;
+    virtual uart_if vif;
 
     int    num_trn_rx;
-    int num_trn_tx;
+    int    num_trn_tx;
     data_t reversed_data;
     
     rx_trn_t rx_tr_drv;
@@ -18,11 +18,11 @@ class Driver;
     
     function new(mailbox #(rx_trn_t) gen2drv_rx,
                  mailbox #(tx_trn_t) gen2drv_tx,
-                 virtual uart_if uif           );
+                 virtual uart_if vif           );
     
         this.gen2drv_rx = gen2drv_rx;
         this.gen2drv_tx = gen2drv_tx;
-        this.uif        = uif;
+        this.vif        = vif;
     
     endfunction 
     
@@ -36,17 +36,17 @@ class Driver;
             
             #(rx_tr_drv.send_delay*CLK_CYCLE);
     
-            wait(uif.baud_pulse);
-            uif.rxc = 0;
+            wait(vif.baud_pulse);
+            vif.rxc = 0;
     
             for(int i=0; i<WORD; i++) begin
                 #(UART_CYCLE);
-                uif.rxc = rx_tr_drv.data[i];
+                vif.rxc = rx_tr_drv.data[i];
             end
             
-            #(UART_CYCLE) uif.rxc = rx_tr_drv.stop_bit;
+            #(UART_CYCLE) vif.rxc = rx_tr_drv.stop_bit;
             
-            #(UART_CYCLE) uif.rxc = 1;
+            #(UART_CYCLE) vif.rxc = 1;
             #(UART_CYCLE);
             
             num_trn_rx++;
@@ -72,15 +72,15 @@ class Driver;
 
             #(tx_tr_drv.data_delay*CLK_CYCLE);
 
-             if(uif.tx_empty)
-                uif.tx_data = tx_tr_drv.data;
+             if(vif.tx_empty)
+                vif.tx_data = tx_tr_drv.data;
              else begin
-                wait(uif.tx_empty);
-                uif.tx_data = tx_tr_drv.data;
+                wait(vif.tx_empty);
+                vif.tx_data = tx_tr_drv.data;
              end
 
-            @(posedge uif.clk) uif.tx_wren = 1;
-            @(posedge uif.clk) uif.tx_wren = 0;
+            @(posedge vif.clk) vif.tx_wren = 1;
+            @(posedge vif.clk) vif.tx_wren = 0;
 
             #20ns;
 

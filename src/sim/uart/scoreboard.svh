@@ -20,19 +20,15 @@ class Scoreboard;
     mailbox #( tx_trn_t ) gen2scb_tx;
     mailbox #(  data_t  ) mnt2scb_tx;
     
-    virtual uart_if uif;
-    
     function new(mailbox #( rx_trn_t ) gen2scb_rx,
                  mailbox #(mnt_rcvd_t) mnt2scb_rx,
                  mailbox #( tx_trn_t ) gen2scb_tx,
-                 mailbox #(  data_t  ) mnt2scb_tx,
-                 virtual uart_if uif);
+                 mailbox #(  data_t  ) mnt2scb_tx);
     
         this.gen2scb_rx = gen2scb_rx;
         this.mnt2scb_rx = mnt2scb_rx;
         this.gen2scb_tx = gen2scb_tx;
         this.mnt2scb_tx = mnt2scb_tx;
-        this.uif        = uif;
     
     endfunction
     

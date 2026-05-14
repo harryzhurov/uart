@@ -2,6 +2,10 @@
 import : main
 
 sources:
+    - src/syn/uart/params_pkg.sv
+    - src/syn/uart/uart_if.sv
     - src/syn/uart/top.sv
     - src/syn/uart/uart.sv
+    - src/syn/uart/uart_tx.sv
+    - src/syn/uart/uart_rx.sv
 

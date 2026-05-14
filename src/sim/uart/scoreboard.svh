@@ -32,7 +32,6 @@ class Scoreboard;
     
     endfunction
     
-    
     task automatic check_rx();
     
         forever begin

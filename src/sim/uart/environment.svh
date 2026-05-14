@@ -54,6 +54,8 @@ class Environment;
         if(!scb.err) $display("\033[32mINFO: Test succeed!\033[0m");
         else $display("\033[31mINFO: Test failed! Number of error = %d \033[0m", scb.err);
         
+        $display("Final coverage: %0.2f%%", $get_coverage());
+        
         $finish;
         
     endtask

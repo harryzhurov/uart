@@ -10,8 +10,6 @@ class Generator;
     mnt_dels_t rx_mnt_del;
     rx_trn_t   rx_tr_gen ;
     tx_trn_t   tx_tr_gen ;
-    
-    virtual uart_if uif;
 
     mailbox #( rx_trn_t ) gen2drv_rx;
     mailbox #( tx_trn_t ) gen2drv_tx;
@@ -23,15 +21,13 @@ class Generator;
                  mailbox #( rx_trn_t ) gen2scb_rx,
                  mailbox #(mnt_dels_t) gen2mnt_rx,
                  mailbox #( tx_trn_t ) gen2drv_tx,
-                 mailbox #( tx_trn_t ) gen2scb_tx,
-                 virtual uart_if uif            );
+                 mailbox #( tx_trn_t ) gen2scb_tx);
     
         this.gen2drv_rx = gen2drv_rx;
         this.gen2scb_rx = gen2scb_rx;
         this.gen2mnt_rx = gen2mnt_rx;
         this.gen2drv_tx = gen2drv_tx;
         this.gen2scb_tx = gen2scb_tx;
-        this.uif        = uif;
         
     endfunction
     

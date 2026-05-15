@@ -4,7 +4,9 @@
 //
 class Driver;
 
-    virtual uart_if vif;
+    virtual   uart_if vif;
+    
+    semaphore sem_scb2drv;
 
     int    num_trn_rx;
     int    num_trn_tx;
@@ -16,15 +18,17 @@ class Driver;
     mailbox #(rx_trn_t) gen2drv_rx;
     mailbox #(tx_trn_t) gen2drv_tx;
     
-    function new(mailbox #(rx_trn_t) gen2drv_rx,
-                 mailbox #(tx_trn_t) gen2drv_tx,
-                 virtual uart_if vif           );
+    function new(mailbox #(rx_trn_t) gen2drv_rx ,
+                 mailbox #(tx_trn_t) gen2drv_tx ,
+                 virtual             uart_if vif,
+                 semaphore           sem_scb2drv);
     
-        this.gen2drv_rx = gen2drv_rx;
-        this.gen2drv_tx = gen2drv_tx;
-        this.vif        = vif;
+        this.gen2drv_rx  = gen2drv_rx;
+        this.gen2drv_tx  = gen2drv_tx;
+        this.vif         = vif;
+        this.sem_scb2drv = sem_scb2drv;
     
-    endfunction 
+    endfunction
     
     task automatic run_rx();
     

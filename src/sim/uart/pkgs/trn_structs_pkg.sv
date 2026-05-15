@@ -10,7 +10,9 @@ import params_pkg::*;
 typedef struct
 { 
     logic [WORD-1:0] data;
-    int              data_delay;  
+    int              data_delay;
+    bit              drop_tx;
+    int              drop_tx_del;
     int              id;
 } 
 tx_trn_t;
@@ -22,6 +24,8 @@ typedef struct
     int              send_delay;
     int              id;
     bit              stop_bit;
+    bit              drop_rx;
+    int              drop_rx_del;
 } 
 rx_trn_t;
 

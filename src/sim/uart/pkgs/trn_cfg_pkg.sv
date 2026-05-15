@@ -28,3 +28,4 @@ parameter int rden_del_dist_rx    = 30000;    // in range [0:15000] clk cycles
 parameter int send_del_dist_rx    = 30000;    // in range [0:20000] clk cycles
 //===================================================================================
 endpackage : trn_cfg_pkg
+//===================================================================================

@@ -22,16 +22,16 @@ class Scoreboard;
     mailbox #( tx_trn_t ) gen2scb_tx;
     mailbox #(  data_t  ) mnt2scb_tx;
     
-    function new(mailbox #( rx_trn_t ) gen2scb_rx,
-                 mailbox #(mnt_rcvd_t) mnt2scb_rx,
-                 mailbox #( tx_trn_t ) gen2scb_tx,
-                 mailbox #(  data_t  ) mnt2scb_tx);
+    function new(mailbox #( rx_trn_t ) gen2scb_rx ,
+                 mailbox #(mnt_rcvd_t) mnt2scb_rx ,
+                 mailbox #( tx_trn_t ) gen2scb_tx ,
+                 mailbox #(  data_t  ) mnt2scb_tx ,
                  semaphore             sem_scb2drv);
     
-        this.gen2scb_rx = gen2scb_rx;
-        this.mnt2scb_rx = mnt2scb_rx;
-        this.gen2scb_tx = gen2scb_tx;
-        this.mnt2scb_tx = mnt2scb_tx;
+        this.gen2scb_rx  = gen2scb_rx;
+        this.mnt2scb_rx  = mnt2scb_rx;
+        this.gen2scb_tx  = gen2scb_tx;
+        this.mnt2scb_tx  = mnt2scb_tx;
         this.sem_scb2drv = sem_scb2drv;
     
     endfunction
@@ -61,7 +61,6 @@ class Scoreboard;
     task automatic check_rx();
     
         forever begin
-
     
             gen2scb_rx.get(rx_tr_scb);
             mnt2scb_rx.get(mnt_data );

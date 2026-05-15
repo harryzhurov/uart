@@ -21,7 +21,7 @@ class Monitor;
         rx_data : coverpoint vif.rx_data
         {
             bins dat_0   = {    0    };
-            bins dat_63  = {[   1:63]};
+            bins dat_63  = {[  1:63 ]};
             bins dat_127 = {[ 64:127]};
             bins dat_254 = {[128:254]};
             bins dat_255 = {   255   };
@@ -42,8 +42,8 @@ class Monitor;
     covergroup rx_del_cg;
         rx_rden_delay : coverpoint rx_mnt_dels.rden_delay
         {
-            bins del_0  = { 0};
-            bins del_10 = {[1:10000]};
+            bins del_0  = {      0      };
+            bins del_10 = {[    1:10000]};
             bins del_20 = {[10001:20000]};
             bins del_30 = {[20000:30000]};
         }
@@ -53,7 +53,7 @@ class Monitor;
         tx_data : coverpoint tx_data_mnt
         {
             bins dat_0   = {    0    };
-            bins dat_63  = {[   1:63]};
+            bins dat_63  = {[  1:63 ]};
             bins dat_127 = {[ 64:127]};
             bins dat_254 = {[128:254]};
             bins dat_255 = {   255   };

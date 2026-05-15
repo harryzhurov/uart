@@ -12,29 +12,32 @@ class Environment;
     mailbox #( rx_trn_t ) gen2drv_rx;
     mailbox #( rx_trn_t ) gen2scb_rx;
     mailbox #(mnt_rcvd_t) mnt2scb_rx;
-    mailbox #(mnt_dels_t) gen2mnt_rx;
+    mailbox #( rx_trn_t ) gen2mnt_rx;
     mailbox #( tx_trn_t ) gen2drv_tx;
     mailbox #( tx_trn_t ) gen2scb_tx;
     mailbox #(  data_t  ) mnt2scb_tx;
     
-    virtual uart_if uif;
+    virtual uart_if vif;
     
-    function new(virtual uart_if uif);
+    semaphore sem_scb2drv;
+    
+    function new(virtual uart_if vif);
 
-        this.uif   = uif;
-    
-        gen2drv_rx = new();
-        gen2scb_rx = new();
-        mnt2scb_rx = new();
-        gen2mnt_rx = new();
-        gen2drv_tx = new();
-        gen2scb_tx = new();
-        mnt2scb_tx = new();
+        this.vif    = vif;
+        sem_scb2drv = new();
+
+        gen2drv_rx  = new();
+        gen2scb_rx  = new();
+        mnt2scb_rx  = new();
+        gen2mnt_rx  = new();
+        gen2drv_tx  = new();
+        gen2scb_tx  = new();
+        mnt2scb_tx  = new();
         
-        gen = new(gen2drv_rx,gen2scb_rx,gen2mnt_rx,gen2drv_tx,gen2scb_tx,uif);
-        drv = new(gen2drv_rx,gen2drv_tx,uif);
-        mnt = new(mnt2scb_rx,gen2mnt_rx,mnt2scb_tx,uif);
-        scb = new(gen2scb_rx,mnt2scb_rx,gen2scb_tx,mnt2scb_tx,uif);
+        gen = new(gen2drv_rx,gen2scb_rx,gen2mnt_rx,gen2drv_tx,gen2scb_tx);
+        drv = new(gen2drv_rx,gen2drv_tx,vif,sem_scb2drv);
+        mnt = new(mnt2scb_rx,gen2mnt_rx,mnt2scb_tx,vif);
+        scb = new(gen2scb_rx,mnt2scb_rx,gen2scb_tx,mnt2scb_tx,sem_scb2drv);
         
     endfunction;
     
@@ -54,6 +57,8 @@ class Environment;
         if(!scb.err) $display("\033[32mINFO: Test succeed!\033[0m");
         else $display("\033[31mINFO: Test failed! Number of error = %d \033[0m", scb.err);
         
+        $display("Final coverage: %0.2f%%", $get_coverage());
+        
         $finish;
         
     endtask
@@ -70,6 +75,6 @@ class Environment;
         join
         
     endtask
-
+//===================================================================================
 endclass : Environment
 //===================================================================================

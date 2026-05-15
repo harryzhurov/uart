@@ -5,36 +5,30 @@ import tb_components_pkg::*;
 //===================================================================================
 module uart_tb;
 //===================================================================================
-//
-//      Inteface signals
-//
-logic clk          = 0;
-logic baud_pulse   = 0;
-//===================================================================================
-uart_if uart_interface
-(
-    .clk        ( clk        ),
-    .baud_pulse ( baud_pulse )
-);
+uart_if ifs();
 //===================================================================================
 //
 //      Test body
 //
 //--------------------------------------------
+// Virtual interface
+virtual uart_if vif = ifs;
+//--------------------------------------------
 // Generator 100 MHz
 
 initial begin
-    clk = 0;
-    forever #(CLK_CYCLE/2) clk = ~clk;
+    vif.clk = 0;
+    forever #(CLK_CYCLE/2) vif.clk = ~vif.clk;
 end
 //--------------------------------------------
 // Baud pulse generator
 
 initial begin
-    baud_pulse = 0;
+    #($urandom_range(0,UART_CYCLE));
+    vif.tb_mp.baud_pulse = 0;
     forever begin
-        #(UART_CYCLE - CLK_CYCLE) baud_pulse = 1;
-        #(CLK_CYCLE)              baud_pulse = 0;
+        #(UART_CYCLE - CLK_CYCLE) vif.baud_pulse = 1;
+        #(CLK_CYCLE)              vif.baud_pulse = 0;
     end
 end
 //--------------------------------------------
@@ -42,11 +36,11 @@ end
 
 task automatic init();
 
-    uart_interface.rxc         = 1;
-    uart_interface.rx_rden     = 0;
-    uart_interface.rst_err     = 0;
-    uart_interface.tx_data     = 8'h00;
-    uart_interface.tx_wren     = 0;
+    vif.rxc         = 1;
+    vif.rx_rden     = 0;
+    vif.rst_err     = 0;
+    vif.tx_data     = 8'h00;
+    vif.tx_wren     = 0;
 
     #CLK_CYCLE;
 
@@ -58,7 +52,7 @@ Environment env;
 
 initial begin
 
-    env = new(uart_interface);
+    env = new(vif);
 
     init();
 
@@ -73,19 +67,7 @@ end
 //-----------------------------uart.sv instance--------------------------------------
 uart dut0
 (
-    .clk         ( clk                        ),
-    .rxc         ( uart_interface.rxc         ),
-    .rx_data     ( uart_interface.rx_data     ),
-    .rx_rden     ( uart_interface.rx_rden     ),
-    .rx_complete ( uart_interface.rx_complete ),
-    .frame_error ( uart_interface.frame_error ),
-    .overrun     ( uart_interface.overrun     ),
-    .rst_err     ( uart_interface.rst_err     ),
-    .txc         ( uart_interface.txc         ),
-    .tx_data     ( uart_interface.tx_data     ),
-    .tx_wren     ( uart_interface.tx_wren     ),
-    .tx_empty    ( uart_interface.tx_empty    ),
-    .tx_complete ( uart_interface.tx_complete )
+    .ifs ( ifs )
 );
 //===================================================================================
 endmodule : uart_tb

@@ -44,6 +44,13 @@ class Driver;
     
     endtask
     
+    task automatic reinit_rxc();
+
+        vif.rxc = 1;
+        #(10*UART_CYCLE);
+
+    endtask
+    
     task automatic run_tx();
 
         forever begin

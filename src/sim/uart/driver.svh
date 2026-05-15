@@ -35,12 +35,71 @@ class Driver;
         forever begin
 
             gen2drv_rx.get(rx_tr_drv);
-            
+
+            if(sem_scb2drv.try_get(1))
+                reinit_rxc();
+            else begin
+
+                fork
+                    begin : dropping_rx
+
+                        if(rx_tr_drv.drop_rx) begin
+
+                            #(rx_tr_drv.drop_rx_del) $display("DROP RX!, time = [%t]",$realtime);
+                            disable normal_transaction_rx;
+
+                        end
+                        else begin
+                            #(1000*UART_CYCLE);
+                        end
+
+                    end
+                    begin : normal_transaction_rx
+
+                        send_rx();
+                        disable dropping_rx;
+
+                    end
+                join_any
+
+                num_trn_rx++;
+
+                disable fork;
+
+                vif.rxc = 1;
                 #(UART_CYCLE);
                 
             end
-            #(UART_CYCLE);
         end
+    endtask
+    
+    task automatic send_rx();
+    
+        //$display("rx_run start, num = %d, time [%t]",num_trn_rx, $realtime);
+
+        #(rx_tr_drv.send_delay*CLK_CYCLE);
+
+        wait(vif.baud_pulse);
+        vif.rxc = 0;
+
+        for(int i=0; i<WORD; i++) begin
+            #(UART_CYCLE);
+            vif.rxc = rx_tr_drv.data[i];
+        end
+
+        #(UART_CYCLE) vif.rxc = rx_tr_drv.stop_bit;
+
+        #(UART_CYCLE) vif.rxc = 1;
+        #(UART_CYCLE);
+
+        for(int i = 0; i < WORD; ++i) begin
+            reversed_data[i] = rx_tr_drv.data[7-i];
+        end
+
+        //$display("driver (rx): data sent = %h", reversed_data);
+        //$display("driver (rx): Num transaction = %d", num_trn_rx);
+
+        //$display("rx_run done, num = %d, time [%t]",num_trn_rx, $realtime);
     
     endtask
     

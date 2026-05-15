@@ -79,21 +79,34 @@ class Monitor;
     
         forever begin
 
-            @(vif.rx_data, posedge vif.rx_complete, posedge vif.overrun) begin
-                mnt_data.data        = vif.rx_data;
-                mnt_data.frame_error = vif.frame_error;
-                mnt_data.overrun     = vif.overrun;
-                mnt2scb_rx.put(mnt_data);
-                rx_data_cg.sample();
-                if(vif.overrun | vif.frame_error)
-                    reset_err();
-            end
-            
-            num_trn_rx++;
-            
-            //$display("monitor (rx) : data received = %h", vif.rx_data);
-            //$display("monitor (rx) : Num transaction = %d", num_trn_rx);
+            gen2mnt_rx.get(rx_tr_mnt);
 
+            fork
+            begin
+                if(!rx_tr_mnt.drop_rx) begin
+                    @(vif.rx_data, posedge vif.rx_complete, posedge vif.overrun) begin
+                        mnt_data.data        = vif.rx_data;
+                        mnt_data.frame_error = vif.frame_error;
+                        mnt_data.overrun     = vif.overrun;
+                        mnt2scb_rx.put(mnt_data);
+                        rx_data_cg.sample();
+                        if(vif.overrun | vif.frame_error)
+                            reset_err();
+                    end
+                end
+                else begin
+                    mnt2scb_rx.put(mnt_data);
+                end
+
+                num_trn_rx++;
+
+                //$display("monitor (rx) : data received = %h", vif.rx_data);
+                //$display("monitor (rx) : Num transaction = %d", num_trn_rx);
+            end
+            begin
+                rx_rden_send();
+            end
+            join_any
         end
     
     endtask
@@ -125,29 +138,24 @@ class Monitor;
     
     task automatic rx_rden_send();
 
-        forever begin
+        //$display("rx_rden_send start[%t]", $realtime);
 
-            gen2mnt_rx.get(rx_mnt_dels);
-            
-            //$display("rx_rden_send start[%t]", $realtime);
-            
-            @(posedge vif.rx_complete) begin
+        @(posedge vif.rx_complete) begin
 
-                
-                //$display("INFO: rden_delay = %d", rx_mnt_dels.rden_delay);
-                //$display("INFO: send_delay = %d", rx_mnt_dels.send_delay);
 
-                #(rx_mnt_dels.rden_delay*CLK_CYCLE);
-                
-                @(posedge vif.clk) vif.rx_rden = 1;
-                @(posedge vif.clk) vif.rx_rden = 0;
-                
-                rx_del_cg.sample();
-    
-            end
-            
-            //$display("rx_rden_send complete [%t]", $realtime);
+            //$display("INFO: rden_delay = %d", rx_mnt_dels.rden_delay);
+            //$display("INFO: send_delay = %d", rx_mnt_dels.send_delay);
+
+            #(rx_tr_mnt.rden_delay*CLK_CYCLE);
+
+            @(posedge vif.clk) vif.rx_rden = 1;
+            @(posedge vif.clk) vif.rx_rden = 0;
+
+            rx_del_cg.sample();
+
         end
+
+        //$display("rx_rden_send complete [%t]", $realtime);
         
     endtask
     
@@ -164,7 +172,6 @@ class Monitor;
         fork
         
             receive_rx();
-            rx_rden_send();
             receive_tx();
             
         join        

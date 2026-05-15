@@ -36,6 +36,28 @@ class Scoreboard;
     
     endfunction
     
+    function check_rx_data;
+        if(rx_tr_scb.data !== rx_reversed_data) begin
+
+            $display("INFO (ERROR) (rx) : bad frame = %d, time = [%t]",num_trn_rx, $realtime);
+            $display("      Sent data = %h, Received = %h",rx_tr_scb.data,rx_reversed_data);
+            err++;
+            return 1;
+        end
+        
+        return 0;
+        
+    endfunction
+    
+    function check_frame_error;
+        if(rx_tr_scb.stop_bit == mnt_data.frame_error) begin
+            $display("INFO (ERROR) (rx) : frame error, time = [%t]", $realtime);
+            err++;
+            return 1;
+        end
+        return 0;
+    endfunction
+
     task automatic check_rx();
     
         forever begin

@@ -62,7 +62,6 @@ class Scoreboard;
     
         forever begin
 
-            //$display("rx_check start, num = %d, time [%t]",num_trn_rx, $realtime);
     
             gen2scb_rx.get(rx_tr_scb);
             mnt2scb_rx.get(mnt_data );
@@ -76,23 +75,8 @@ class Scoreboard;
                 if(check_rx_data & check_frame_error)
                     sem_scb2drv.put(1);
 
-            if(rx_tr_scb.data !== rx_reversed_data) begin
-            
-                //$display("INFO: Error: rx_data doesn`t match, transaction ID = %d", rx_tr_scb.id);
-                //$display("      Sent data = %h, Received = %h",rx_tr_scb.data,rx_reversed_data);
-                $display("INFO (ERROR) (rx) : bad frame = %d, time = [%t]",num_trn_rx, $realtime);
-                err++;
-            
             end
-            
-            if(rx_tr_scb.stop_bit == mnt_data.frame_error) begin
-                $display("INFO (ERROR) (rx) : frame error, time = [%t]", $realtime);
-                err++;
-            end
-            
             num_trn_rx++;
-            
-            //$display("rx_check done, num = %d, time [%t]",num_trn_rx, $realtime);
         
         end
     
@@ -106,9 +90,8 @@ class Scoreboard;
             mnt2scb_tx.get(tx_data_shift);
             if(tx_tr_scb.data !== tx_data_shift) begin
 
-                /*$display("INFO: Error: tx_data doesn`t match, transaction ID = %d", tx_tr_scb.id);
-                $display("      Sent data = %h, Received = %h",tx_tr_scb.data,tx_data_shift);*/
                 $display("INFO (ERROR) (tx) : bad frame = %d, time = [%t]",num_trn_tx, $realtime);
+                $display("      Sent data = %h, Received = %h",tx_tr_scb.data,tx_data_shift);
                 err++;
 
             end

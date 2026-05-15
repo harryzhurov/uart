@@ -26,8 +26,7 @@ class Rx_transaction;
 
         stop_bit    dist  {0 := (wrong_stop_exist_rx), 1       := (100 - wrong_stop_exist_rx)};
         data        dist  {0 := (zero_data_rx)       , [1:255] := (100 - zero_data_rx)       };
-        
-        drop_rx     dist  {0 := ( 100 - drop_rx_trn ), 1       := ( drop_rx_trn)             };
+        drop_rx     dist  {0 := (100 - drop_rx_trn)  , 1       := (drop_rx_trn)              };
         
         (drop_rx==0) -> (drop_rx_del==0);
         solve drop_rx before drop_rx_del;
@@ -40,8 +39,8 @@ class Rx_transaction;
         rden_delay inside {[0:rden_del_dist_rx]};
         send_delay inside {[0:send_del_dist_rx]};
 
-        wrong_rden  dist  {0 := (100 - rden_del_exist_rx) , 1 := (rden_del_exist_rx)};
-        del_send    dist  {0 := (100 - send_del_exist_rx) , 1 := (send_del_exist_rx)};
+        wrong_rden  dist  {0 := (100 - rden_del_exist_rx), 1 := (rden_del_exist_rx)};
+        del_send    dist  {0 := (100 - send_del_exist_rx), 1 := (send_del_exist_rx)};
         
         (del_send == 0) -> (send_delay==0);
         solve del_send before send_delay;

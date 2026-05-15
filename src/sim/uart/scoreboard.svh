@@ -15,6 +15,8 @@ class Scoreboard;
     mnt_rcvd_t mnt_data;
     tx_trn_t   tx_tr_scb;
     
+    semaphore sem_scb2drv;
+    
     mailbox #( rx_trn_t ) gen2scb_rx;
     mailbox #(mnt_rcvd_t) mnt2scb_rx;
     mailbox #( tx_trn_t ) gen2scb_tx;
@@ -24,11 +26,13 @@ class Scoreboard;
                  mailbox #(mnt_rcvd_t) mnt2scb_rx,
                  mailbox #( tx_trn_t ) gen2scb_tx,
                  mailbox #(  data_t  ) mnt2scb_tx);
+                 semaphore             sem_scb2drv);
     
         this.gen2scb_rx = gen2scb_rx;
         this.mnt2scb_rx = mnt2scb_rx;
         this.gen2scb_tx = gen2scb_tx;
         this.mnt2scb_tx = mnt2scb_tx;
+        this.sem_scb2drv = sem_scb2drv;
     
     endfunction
     
@@ -45,6 +49,11 @@ class Scoreboard;
                 rx_reversed_data[i] = mnt_data.data[WORD-1-i];
             end
             
+            if(!rx_tr_scb.drop_rx) begin
+
+                if(check_rx_data & check_frame_error)
+                    sem_scb2drv.put(1);
+
             if(rx_tr_scb.data !== rx_reversed_data) begin
             
                 //$display("INFO: Error: rx_data doesn`t match, transaction ID = %d", rx_tr_scb.id);

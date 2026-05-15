@@ -31,39 +31,15 @@ class Driver;
     endfunction
     
     task automatic run_rx();
-    
+
         forever begin
 
-            //$display("rx_run start, num = %d, time [%t]",num_trn_rx, $realtime);
-        
             gen2drv_rx.get(rx_tr_drv);
             
-            #(rx_tr_drv.send_delay*CLK_CYCLE);
-    
-            wait(vif.baud_pulse);
-            vif.rxc = 0;
-    
-            for(int i=0; i<WORD; i++) begin
                 #(UART_CYCLE);
-                vif.rxc = rx_tr_drv.data[i];
+                
             end
-            
-            #(UART_CYCLE) vif.rxc = rx_tr_drv.stop_bit;
-            
-            #(UART_CYCLE) vif.rxc = 1;
             #(UART_CYCLE);
-            
-            num_trn_rx++;
-            
-            for(int i = 0; i < WORD; ++i) begin
-                reversed_data[i] = rx_tr_drv.data[7-i];
-            end
-            
-            //$display("driver (rx): data sent = %h", reversed_data);
-            //$display("driver (rx): Num transaction = %d", num_trn_rx);
-            
-            //$display("rx_run done, num = %d, time [%t]",num_trn_rx, $realtime);
-        
         end
     
     endtask

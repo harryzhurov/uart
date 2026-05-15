@@ -44,6 +44,8 @@ class Generator;
             rx_tr_gen.send_delay  = rx_trn.send_delay;
             rx_tr_gen.rden_delay  = rx_trn.rden_delay;
             rx_tr_gen.stop_bit    = rx_trn.stop_bit;
+            rx_tr_gen.drop_rx     = rx_trn.drop_rx;
+            rx_tr_gen.drop_rx_del = rx_trn.drop_rx_del;
             rx_tr_gen.id          = rx_trn.id;
             
             gen2drv_rx.put(rx_tr_gen);

@@ -15,11 +15,11 @@ class Generator;
     mailbox #( tx_trn_t ) gen2drv_tx;
     mailbox #( rx_trn_t ) gen2scb_rx;
     mailbox #( tx_trn_t ) gen2scb_tx;
-    mailbox #(mnt_dels_t) gen2mnt_rx;
+    mailbox #( rx_trn_t ) gen2mnt_rx;
     
     function new(mailbox #( rx_trn_t ) gen2drv_rx,
                  mailbox #( rx_trn_t ) gen2scb_rx,
-                 mailbox #(mnt_dels_t) gen2mnt_rx,
+                 mailbox #( rx_trn_t ) gen2mnt_rx,
                  mailbox #( tx_trn_t ) gen2drv_tx,
                  mailbox #( tx_trn_t ) gen2scb_tx);
     
@@ -46,14 +46,9 @@ class Generator;
             rx_tr_gen.stop_bit    = rx_trn.stop_bit;
             rx_tr_gen.id          = rx_trn.id;
             
-            rx_mnt_del.rden_delay = rx_trn.rden_delay;
-            rx_mnt_del.send_delay = rx_trn.send_delay;
-            
-            
-            gen2drv_rx.put(rx_tr_gen );
-            gen2scb_rx.put(rx_tr_gen );
-            gen2mnt_rx.put(rx_mnt_del);
-            gen2mnt_rx.put(rx_mnt_del);
+            gen2drv_rx.put(rx_tr_gen);
+            gen2scb_rx.put(rx_tr_gen);
+            gen2mnt_rx.put(rx_tr_gen);
             
         end
     

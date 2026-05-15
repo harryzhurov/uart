@@ -10,9 +10,9 @@ parameter int  num_trn_rx          = 500;
 //
 //      Tx setting
 //
-parameter int  zero_data_tx        = 10;      // probability of data = 2'h00--------------------------\
-parameter int  send_del_exist_tx   = 60;      // probobility of delay existance before data sending -- > (%)
-parameter int  drop_tx_trn         =  1;      // probability of dropping transaction------------------/
+parameter int  zero_data_tx        =  5;      // probability of data = 2'h00--------------------------\
+parameter int  send_del_exist_tx   = 20;      // probobility of delay existance before data sending -- > (%)
+parameter int  drop_tx_trn         =  0;      // probability of dropping transaction------------------/
 parameter int  send_del_dist_tx    = 40000;   // in range [0:10000] clk
 
 //===================================================================================
@@ -20,10 +20,10 @@ parameter int  send_del_dist_tx    = 40000;   // in range [0:10000] clk
 //      Rx setting
 //
 parameter int wrong_stop_exist_rx =  1;       // probability of stop bit = 0-------------------------------\
-parameter int send_del_exist_rx   = 20;       // probability of delay existance before data sending         \
-parameter int rden_del_exist_rx   = 20;       // probability of delay existance before rx_rden flag sending  > (%)
-parameter int zero_data_rx        = 15;       // probability of data = 2'h00                                /
-parameter int drop_rx_trn         =  1;       // probability of dropping transaction-----------------------/
+parameter int send_del_exist_rx   = 10;       // probability of delay existance before data sending         \
+parameter int rden_del_exist_rx   = 12;       // probability of delay existance before rx_rden flag sending  > (%)
+parameter int zero_data_rx        =  5;       // probability of data = 2'h00                                /
+parameter int drop_rx_trn         =  0;       // probability of dropping transaction-----------------------/
 parameter int rden_del_dist_rx    = 30000;    // in range [0:15000] clk cycles
 parameter int send_del_dist_rx    = 30000;    // in range [0:20000] clk cycles
 //===================================================================================

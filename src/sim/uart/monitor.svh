@@ -4,17 +4,17 @@
 //
 class Monitor;
 
-    virtual uart_if vif;
+    virtual   uart_if vif;
 
     int    num_trn_rx;
     int    num_trn_tx;
     data_t tx_data_mnt;
 
-    mnt_dels_t rx_mnt_dels;
+    rx_trn_t rx_tr_mnt;
     mnt_rcvd_t mnt_data;
 
     mailbox #(mnt_rcvd_t) mnt2scb_rx;
-    mailbox #(mnt_dels_t) gen2mnt_rx;
+    mailbox #( rx_trn_t ) gen2mnt_rx;
     mailbox #(  data_t  ) mnt2scb_tx;
     
     covergroup rx_data_cg @(posedge vif.clk);
@@ -40,7 +40,7 @@ class Monitor;
     endgroup
     
     covergroup rx_del_cg;
-        rx_rden_delay : coverpoint rx_mnt_dels.rden_delay
+        rx_rden_delay : coverpoint rx_tr_mnt.rden_delay
         {
             bins del_0  = {      0      };
             bins del_10 = {[    1:10000]};
@@ -60,18 +60,18 @@ class Monitor;
         }
     endgroup
     
-    function new(mailbox #(mnt_rcvd_t) mnt2scb_rx,
-                 mailbox #(mnt_dels_t) gen2mnt_rx,
-                 mailbox #(  data_t  ) mnt2scb_tx,
-                 virtual uart_if vif             );
+    function new(mailbox #(mnt_rcvd_t) mnt2scb_rx ,
+                 mailbox #( rx_trn_t ) gen2mnt_rx ,
+                 mailbox #(  data_t  ) mnt2scb_tx ,
+                 virtual               uart_if vif);
     
-        this.mnt2scb_rx = mnt2scb_rx;
-        this.gen2mnt_rx = gen2mnt_rx;
-        this.mnt2scb_tx = mnt2scb_tx;
-        this.vif        = vif;
-        rx_data_cg      = new();
-        rx_del_cg       = new();
-        tx_data_cg      = new();
+        this.mnt2scb_rx  = mnt2scb_rx;
+        this.gen2mnt_rx  = gen2mnt_rx;
+        this.mnt2scb_tx  = mnt2scb_tx;
+        this.vif         = vif;
+        rx_data_cg       = new();
+        rx_del_cg        = new();
+        tx_data_cg       = new();
 
     endfunction
     

@@ -115,8 +115,9 @@ always_ff @(posedge clk) begin
                 tx_empty_clr <= 1'b1;
                 tx_stat      <= TX_STATE_START;
             end else begin
-                tx_complete  <= 1'b1;
-                tx_stat      <= TX_STATE_NEXT;
+
+                tx_done <= 1'b1;
+                tx_stat <= TX_STATE_NEXT;
             end
         end
     end

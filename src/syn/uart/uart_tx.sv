@@ -13,9 +13,9 @@ module uart_tx (
 
     input  logic            init_en,
     input  logic [WORD-1:0] tx_data,
-    input  logic            tx_wren,
+    input  logic            tx_empty_clr,
     output logic            tx_empty,
-    output logic            tx_complete
+    output logic            tx_done
 );
 //=======================================================
 //

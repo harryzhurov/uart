@@ -77,27 +77,40 @@ end
 //  TX state machine
 //
 always_ff @(posedge clk) begin
+
     case (tx_state)
+
     TX_IDLE: begin
+
         tx_stat     <= TX_STATE_HOLD;
+
         if (!tx_empty) begin
+
             tx_shift     <= tx_buffer;
             tx_empty_clr <= 1'b1;
             tx_stat      <= TX_STATE_NEXT;
+
         end
     end
     TX_START: begin
+
         tx_empty_clr <= 1'b0;
         tx_stat      <= TX_STATE_HOLD;
+
         if (baud_tick) begin
+
             txc        <= 1'b0;
             tx_bit_cnt <= 4'd0;
             tx_stat    <= TX_STATE_NEXT;
+
         end
     end
     TX_DATA: begin
+
         tx_stat      <= TX_STATE_HOLD;
+
         if (baud_tick) begin
+
             txc        <= tx_shift[7];
             tx_shift   <= {tx_shift[6:0],1'b0 };
             tx_bit_cnt <= tx_bit_cnt + 1;
@@ -107,17 +120,24 @@ always_ff @(posedge clk) begin
         end
     end
     TX_STOP: begin
+
         tx_stat <= TX_STATE_HOLD;
+
         if (baud_tick) begin
+
             txc <= 1'b1;
+
             if (!tx_empty) begin
+
                 tx_shift     <= tx_buffer;
                 tx_empty_clr <= 1'b1;
                 tx_stat      <= TX_STATE_START;
+
             end else begin
 
                 tx_done <= 1'b1;
                 tx_stat <= TX_STATE_NEXT;
+
             end
         end
     end

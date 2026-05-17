@@ -18,19 +18,25 @@ interface uart_if;
     logic            frame_error;
     logic            overrun;
     logic            rst_err;
+    logic            rx_done;
+
     logic [WORD-1:0] tx_data;
     logic            tx_wren;
     logic            tx_empty;
     logic            tx_complete;
+    logic            tx_done;
+    logic            tx_empty_clr;
 //=======================================================
     modport uart_mp
     (
         input  clk,
         input  baud_tick,
         input  init_en,
+
         input  rxc,
         input  rx_rden,
         input  rst_err,
+        input  rx_done,
         output rx_data,
         output rx_complete,
         output frame_error,
@@ -38,6 +44,8 @@ interface uart_if;
         
         input  txc,
         input  tx_wren,
+        input  tx_done,
+        input  tx_empty_clr,
         output tx_data,
         output tx_empty,
         output tx_complete

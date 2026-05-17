@@ -121,16 +121,12 @@ uart_tx u_tx
 
 uart_rx u_rx
 (
-    .clk         ( ifs.clk         ),
-    .baud_tick   ( ifs.baud_tick   ),
-    .init_en     ( ifs.init_en     ),
-    .rxc         ( ifs.rxc         ),
-    .rx_data     ( ifs.rx_data     ),
-    .rx_rden     ( ifs.rx_rden     ),
-    .rx_complete ( ifs.rx_complete ),
-    .frame_error ( ifs.frame_error ),
-    .overrun     ( ifs.overrun     ),
-    .rst_err     ( ifs.rst_err     )
+    .clk          ( ifs.clk          ),
+    .baud_tick    ( ifs.baud_tick    ),
+    .init_en      ( ifs.init_en      ),
+    .rxc          ( ifs.rxc          ),
+    .rx_data      ( ifs.rx_data      ),
+    .rx_done      ( ifs.rx_done      )
 );
 //=======================================================
 endmodule : uart

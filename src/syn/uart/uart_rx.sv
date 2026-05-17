@@ -135,9 +135,11 @@ always_ff @(posedge clk) begin
         rx_stat     <= RX_STATE_HOLD;
         rx_timer_en <= 1;
         if (rx_timer == BIT_PERIOD) begin
-            rx_data     <= rx_shift;
-            rx_complete <= 1'b1;
-            rx_stat     <= RX_STATE_NEXT;
+
+            rx_data <= rx_shift;
+            rx_done <= 1'b1;
+            rx_stat <= RX_STATE_NEXT;
+
         end
     end
     endcase

@@ -48,6 +48,61 @@ always_ff @(posedge ifs.clk) begin
         ifs.baud_tick <= 1;
     end
 end
+//-------------------------------------------------------
+//
+//  Control logic block
+//
+always_ff @(posedge ifs.clk) begin
+//-----------------------------------
+//  RX Control part
+//-----------------------------------
+
+    ifs.rx_complete <= 1'b0;
+    if(ifs.init_en) begin
+        ifs.rx_complete <= 1'b0;
+        ifs.frame_error <= 1'b0;
+        ifs.overrun     <= 1'b0;
+    end
+
+    if(ifs.rst_err) begin
+        ifs.overrun     <= 1'b0;
+        ifs.frame_error <= 1'b0;
+    end
+
+    if(ifs.rx_done)
+        ifs.rx_complete <= 1'b1;
+
+    if(isf.rx_rden)
+        ifs.rx_complete <= 1'b0;
+
+    if (ifs.rx_done & !ifs.rxc)
+        ifs.frame_error <= 1'b1;
+    if(ifs.rx_done & ifs.rx_complete)
+        ifs.overrun <= 1'b1;
+
+//-----------------------------------
+//  TX Control part
+//-----------------------------------
+
+    ifs.tx_complete <= 1'b0;
+
+    if(ifs.init_en) begin
+        ifs.tx_copmlete <= 1'b0;
+        ifs.tx_empty    <= 1'b1;
+    end
+    
+    if(ifs.tx_done)
+        ifs.tx_complete <= 1'b1;
+
+    if (ifs.tx_wren) begin
+        ifs.tx_buffer <= ifs.tx_data;
+        ifs.tx_empty  <= 1'b0;
+    end
+    else if(ifs.tx_empty_clr) begin
+        ifs.tx_empty  <= 1'b1;
+    end
+    
+end
 //=======================================================
 //
 //          Instances

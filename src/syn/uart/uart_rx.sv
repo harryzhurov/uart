@@ -12,12 +12,8 @@ module uart_rx (
     input  logic            rxc,
 
     input  logic            init_en,
-    output logic [WORD-1:0] rx_data,
-    input  logic            rx_rden,
-    output logic            rx_complete,
-    output logic            frame_error,
-    output logic            overrun,
-    input  logic            rst_err
+    output logic            rx_done,
+    output logic [WORD-1:0] rx_data
 );
 //=======================================================
 //

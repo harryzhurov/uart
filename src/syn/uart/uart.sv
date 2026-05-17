@@ -109,14 +109,14 @@ end
 //
 uart_tx u_tx
 (
-    .clk         ( ifs.clk         ),
-    .baud_tick   ( ifs.baud_tick   ),
-    .init_en     ( ifs.init_en     ),
-    .txc         ( ifs.txc         ),
-    .tx_data     ( ifs.tx_data     ),
-    .tx_wren     ( ifs.tx_wren     ),
-    .tx_empty    ( ifs.tx_empty    ),
-    .tx_complete ( ifs.tx_complete )
+    .clk          ( ifs.clk          ),
+    .baud_tick    ( ifs.baud_tick    ),
+    .init_en      ( ifs.init_en      ),
+    .txc          ( ifs.txc          ),
+    .tx_data      ( ifs.tx_data      ),
+    .tx_empty_clr ( ifs.tx_empty_clr ),
+    .tx_empty     ( ifs.tx_empty     ),
+    .tx_done      ( ifs.tx_done      )
 );
 
 uart_rx u_rx

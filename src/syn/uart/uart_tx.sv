@@ -101,9 +101,9 @@ always_ff @(posedge clk) begin
             txc        <= tx_shift[7];
             tx_shift   <= {tx_shift[6:0],1'b0 };
             tx_bit_cnt <= tx_bit_cnt + 1;
-            if (tx_bit_cnt == WORD-1) begin
+
+            if (tx_bit_cnt == WORD-1)
                 tx_stat <= TX_STATE_NEXT;
-            end
         end
     end
     TX_STOP: begin

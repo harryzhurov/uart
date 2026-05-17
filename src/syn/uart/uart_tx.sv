@@ -74,32 +74,12 @@ always_ff@(negedge clk) begin
 end
 //-------------------------------------------------------
 //
-//  Buffer logic
-//
-always_ff @(posedge clk) begin
-    if(init_en) begin
-        tx_empty  <= 1'b1;
-    end
-    if (tx_wren) begin
-        tx_buffer <= tx_data;
-        tx_empty  <= 1'b0;
-    end
-    else if(tx_empty_clr) begin
-        tx_empty  <= 1'b1;
-    end
-end
-//-------------------------------------------------------
-//
 //  TX state machine
 //
 always_ff @(posedge clk) begin
-    if(init_en) begin
-        txc <= 1'b1;
-    end
     case (tx_state)
     TX_IDLE: begin
         tx_stat     <= TX_STATE_HOLD;
-        tx_complete <= 1'b0;
         if (!tx_empty) begin
             tx_shift     <= tx_buffer;
             tx_empty_clr <= 1'b1;

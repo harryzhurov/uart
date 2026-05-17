@@ -99,41 +99,59 @@ always_comb start_detected = (rxc_shift[2] && (!rxc_shift[1]));
 //  Body of Receiver
 //
 always_ff @(posedge clk) begin
+
     case (rx_state)
+
     RX_IDLE: begin
+
         rx_stat     <= RX_STATE_HOLD;
         rx_timer_en <= 0;
+
         if (start_detected)
             rx_stat <= RX_STATE_NEXT;
     end
     RX_HALF: begin
+
         rx_stat     <= RX_STATE_HOLD;
         rx_timer_en <= 1;
+
         if (rx_timer == HALF_PERIOD) begin
+
             rx_stat <= RX_STATE_IDLE;
+
             if (rxc_shift[2] == 1'b0) begin
+
                 rx_timer_en <= 0;
                 rx_bit_cnt  <= 4'd0;
                 rx_stat     <= RX_STATE_NEXT;
+
             end
         end
     end
     RX_DATA: begin
+
         rx_stat     <= RX_STATE_HOLD;
         rx_timer_en <= 1;
+
         if (rx_timer == BIT_PERIOD) begin
+
             rx_shift    <= {rx_shift[6:0], rxc_shift[2]};
             rx_bit_cnt  <= rx_bit_cnt + 1;
             rx_timer_en <= 0;
+
             if (rx_bit_cnt == WORD-1) begin
+
                 rx_timer_en <= 0;
                 rx_stat     <= RX_STATE_NEXT;
+
             end
         end
     end
     RX_STOP: begin
+
         rx_stat     <= RX_STATE_HOLD;
         rx_timer_en <= 1;
+
         if (rx_timer == BIT_PERIOD) begin
 
             rx_data <= rx_shift;

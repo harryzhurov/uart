@@ -99,13 +99,6 @@ always_comb start_detected = (rxc_shift[2] && (!rxc_shift[1]));
 //  Body of Receiver
 //
 always_ff @(posedge clk) begin
-    if(init_en) begin
-        rx_complete <= 1'b0;
-        overrun     <= 1'b0;
-        frame_error <= 1'b0;
-    end
-    if (rx_rden)
-        rx_complete <= 1'b0;
     case (rx_state)
     RX_IDLE: begin
         rx_stat     <= RX_STATE_HOLD;
@@ -142,24 +135,12 @@ always_ff @(posedge clk) begin
         rx_stat     <= RX_STATE_HOLD;
         rx_timer_en <= 1;
         if (rx_timer == BIT_PERIOD) begin
-            if (!rxc_shift[2])
-                frame_error <= 1'b1;
-            if ( rx_complete )
-                overrun     <= 1'b1;
             rx_data     <= rx_shift;
             rx_complete <= 1'b1;
             rx_stat     <= RX_STATE_NEXT;
         end
     end
     endcase
-//-------------------------------------------------------
-//
-//  Reset errors
-//
-    if (rst_err) begin
-        frame_error <= 1'b0;
-        overrun     <= 1'b0;
-    end
 end
 //=======================================================
 endmodule : uart_rx

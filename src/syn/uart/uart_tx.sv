@@ -75,6 +75,8 @@ end
 //
 always_ff @(posedge clk) begin
 
+    tx_done <= 1'b0;
+
     case (tx_state)
 
     TX_IDLE: begin

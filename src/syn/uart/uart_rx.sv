@@ -13,7 +13,7 @@ module uart_rx (
 
     input  logic            init_en,
     output logic            rx_done,
-    output logic [WORD-1:0] rx_data
+    output logic [WORD-1:0] rx_buffer
 );
 //=======================================================
 //
@@ -154,9 +154,9 @@ always_ff @(posedge clk) begin
 
         if (rx_timer == BIT_PERIOD) begin
 
-            rx_data <= rx_shift;
-            rx_done <= 1'b1;
-            rx_stat <= RX_STATE_NEXT;
+            rx_buffer <= rx_shift;
+            rx_done   <= 1'b1;
+            rx_stat   <= RX_STATE_NEXT;
 
         end
     end

@@ -100,6 +100,8 @@ always_comb start_detected = (rxc_shift[2] && (!rxc_shift[1]));
 //
 always_ff @(posedge clk) begin
 
+    rx_done <= 1'b0;
+
     case (rx_state)
 
     RX_IDLE: begin

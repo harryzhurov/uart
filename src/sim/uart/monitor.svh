@@ -36,6 +36,8 @@ class Monitor;
             bins err_0 = {0};
             bins err_1 = {1};
         }
+        
+        option.per_instance = 1;
 
     endgroup
     
@@ -47,6 +49,9 @@ class Monitor;
             bins del_20 = {[10001:20000]};
             bins del_30 = {[20000:30000]};
         }
+        
+        option.per_instance = 1;
+
     endgroup
     
     covergroup tx_data_cg @(posedge vif.clk);
@@ -58,6 +63,9 @@ class Monitor;
             bins dat_254 = {[128:254]};
             bins dat_255 = {   255   };
         }
+        
+        option.per_instance = 1;
+
     endgroup
     
     function new(mailbox #(mnt_rcvd_t) mnt2scb_rx ,
@@ -85,6 +93,7 @@ class Monitor;
             begin
                 if(!rx_tr_mnt.drop_rx) begin
                     @(vif.rx_data, posedge vif.rx_complete, posedge vif.overrun) begin
+
                         mnt_data.data        = vif.rx_data;
                         mnt_data.frame_error = vif.frame_error;
                         mnt_data.overrun     = vif.overrun;

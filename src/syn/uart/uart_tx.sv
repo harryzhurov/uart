@@ -12,9 +12,9 @@ module uart_tx (
     input  logic            baud_tick,
 
     input  logic            init_en,
-    input  logic [WORD-1:0] tx_data,
-    input  logic            tx_empty_clr,
-    output logic            tx_empty,
+    input  logic [WORD-1:0] tx_buffer,
+    input  logic            tx_empty,
+    output logic            tx_empty_clr,
     output logic            tx_done
 );
 //=======================================================
@@ -41,11 +41,8 @@ tx_state_t;
 //
 //          Logic
 //
-logic [WORD-1:0] tx_buffer       = 0;
 logic [WORD-1:0] tx_shift        = 0;
 logic [     3:0] tx_bit_cnt      = 0;
-logic            tx_empty_clr    = 0;
-
 
 tx_stat_t        tx_stat         = TX_STATE_HOLD;
 tx_state_t       tx_state        = TX_IDLE;
@@ -107,7 +104,7 @@ always_ff @(posedge clk) begin
     end
     TX_DATA: begin
 
-        tx_stat      <= TX_STATE_HOLD;
+        tx_stat <= TX_STATE_HOLD;
 
         if (baud_tick) begin
 

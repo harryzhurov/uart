@@ -99,8 +99,10 @@ class Monitor;
                         mnt_data.overrun     = vif.overrun;
                         mnt2scb_rx.put(mnt_data);
                         rx_data_cg.sample();
-                        if(vif.overrun | vif.frame_error)
+                        
+                        if(vif.overrun | vif.frame_error) begin
                             reset_err();
+                        end
                     end
                 end
                 else begin

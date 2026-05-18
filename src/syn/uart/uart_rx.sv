@@ -12,12 +12,8 @@ module uart_rx (
     input  logic            rxc,
 
     input  logic            init_en,
-    output logic [WORD-1:0] rx_data,
-    input  logic            rx_rden,
-    output logic            rx_complete,
-    output logic            frame_error,
-    output logic            overrun,
-    input  logic            rst_err
+    output logic            rx_done,
+    output logic [WORD-1:0] rx_buffer
 );
 //=======================================================
 //
@@ -103,67 +99,70 @@ always_comb start_detected = (rxc_shift[2] && (!rxc_shift[1]));
 //  Body of Receiver
 //
 always_ff @(posedge clk) begin
-    if(init_en) begin
-        rx_complete <= 1'b0;
-        overrun     <= 1'b0;
-        frame_error <= 1'b0;
-    end
-    if (rx_rden)
-        rx_complete <= 1'b0;
+
+    rx_done <= 1'b0;
+
     case (rx_state)
+
     RX_IDLE: begin
+
         rx_stat     <= RX_STATE_HOLD;
         rx_timer_en <= 0;
+
         if (start_detected)
             rx_stat <= RX_STATE_NEXT;
     end
     RX_HALF: begin
+
         rx_stat     <= RX_STATE_HOLD;
         rx_timer_en <= 1;
+
         if (rx_timer == HALF_PERIOD) begin
+
             rx_stat <= RX_STATE_IDLE;
+
             if (rxc_shift[2] == 1'b0) begin
+
                 rx_timer_en <= 0;
                 rx_bit_cnt  <= 4'd0;
                 rx_stat     <= RX_STATE_NEXT;
+
             end
         end
     end
     RX_DATA: begin
+
         rx_stat     <= RX_STATE_HOLD;
         rx_timer_en <= 1;
+
         if (rx_timer == BIT_PERIOD) begin
+
             rx_shift    <= {rx_shift[6:0], rxc_shift[2]};
             rx_bit_cnt  <= rx_bit_cnt + 1;
             rx_timer_en <= 0;
+
             if (rx_bit_cnt == WORD-1) begin
+
                 rx_timer_en <= 0;
                 rx_stat     <= RX_STATE_NEXT;
+
             end
         end
     end
     RX_STOP: begin
+
         rx_stat     <= RX_STATE_HOLD;
         rx_timer_en <= 1;
+
         if (rx_timer == BIT_PERIOD) begin
-            if (!rxc_shift[2])
-                frame_error <= 1'b1;
-            if ( rx_complete )
-                overrun     <= 1'b1;
-            rx_data     <= rx_shift;
-            rx_complete <= 1'b1;
-            rx_stat     <= RX_STATE_NEXT;
+
+            rx_buffer <= rx_shift;
+            rx_done   <= 1'b1;
+            rx_stat   <= RX_STATE_NEXT;
+
         end
     end
     endcase
-//-------------------------------------------------------
-//
-//  Reset errors
-//
-    if (rst_err) begin
-        frame_error <= 1'b0;
-        overrun     <= 1'b0;
-    end
 end
 //=======================================================
 endmodule : uart_rx

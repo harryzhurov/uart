@@ -12,10 +12,10 @@ module uart_tx (
     input  logic            baud_tick,
 
     input  logic            init_en,
-    input  logic [WORD-1:0] tx_data,
-    input  logic            tx_wren,
-    output logic            tx_empty,
-    output logic            tx_complete
+    input  logic [WORD-1:0] tx_buffer,
+    input  logic            tx_empty,
+    output logic            tx_empty_clr,
+    output logic            tx_done
 );
 //=======================================================
 //
@@ -41,11 +41,8 @@ tx_state_t;
 //
 //          Logic
 //
-logic [WORD-1:0] tx_buffer       = 0;
 logic [WORD-1:0] tx_shift        = 0;
 logic [     3:0] tx_bit_cnt      = 0;
-logic            tx_empty_clr    = 0;
-
 
 tx_stat_t        tx_stat         = TX_STATE_HOLD;
 tx_state_t       tx_state        = TX_IDLE;
@@ -74,69 +71,72 @@ always_ff@(negedge clk) begin
 end
 //-------------------------------------------------------
 //
-//  Buffer logic
-//
-always_ff @(posedge clk) begin
-    if(init_en) begin
-        tx_empty  <= 1'b1;
-    end
-    if (tx_wren) begin
-        tx_buffer <= tx_data;
-        tx_empty  <= 1'b0;
-    end
-    else if(tx_empty_clr) begin
-        tx_empty  <= 1'b1;
-    end
-end
-//-------------------------------------------------------
-//
 //  TX state machine
 //
 always_ff @(posedge clk) begin
-    if(init_en) begin
-        txc <= 1'b1;
-    end
+
+    tx_done <= 1'b0;
+
     case (tx_state)
+
     TX_IDLE: begin
+
         tx_stat     <= TX_STATE_HOLD;
-        tx_complete <= 1'b0;
+
         if (!tx_empty) begin
+
             tx_shift     <= tx_buffer;
             tx_empty_clr <= 1'b1;
             tx_stat      <= TX_STATE_NEXT;
+
         end
     end
     TX_START: begin
+
         tx_empty_clr <= 1'b0;
         tx_stat      <= TX_STATE_HOLD;
+
         if (baud_tick) begin
+
             txc        <= 1'b0;
             tx_bit_cnt <= 4'd0;
             tx_stat    <= TX_STATE_NEXT;
+
         end
     end
     TX_DATA: begin
-        tx_stat      <= TX_STATE_HOLD;
+
+        tx_stat <= TX_STATE_HOLD;
+
         if (baud_tick) begin
+
             txc        <= tx_shift[7];
             tx_shift   <= {tx_shift[6:0],1'b0 };
             tx_bit_cnt <= tx_bit_cnt + 1;
-            if (tx_bit_cnt == WORD-1) begin
+
+            if (tx_bit_cnt == WORD-1)
                 tx_stat <= TX_STATE_NEXT;
-            end
         end
     end
     TX_STOP: begin
+
         tx_stat <= TX_STATE_HOLD;
+
         if (baud_tick) begin
+
             txc <= 1'b1;
+
             if (!tx_empty) begin
+
                 tx_shift     <= tx_buffer;
                 tx_empty_clr <= 1'b1;
                 tx_stat      <= TX_STATE_START;
+
             end else begin
-                tx_complete  <= 1'b1;
-                tx_stat      <= TX_STATE_NEXT;
+
+                tx_done <= 1'b1;
+                tx_stat <= TX_STATE_NEXT;
+
             end
         end
     end

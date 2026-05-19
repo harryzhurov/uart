@@ -11,7 +11,6 @@ module uart_tx (
     output logic            txc,
     input  logic            baud_tick,
 
-    input  logic            init_en,
     input  logic [WORD-1:0] tx_buffer,
     input  logic            tx_empty,
     output logic            tx_empty_clr,

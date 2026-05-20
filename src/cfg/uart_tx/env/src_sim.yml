@@ -1,9 +1,7 @@
 
 sources:
-    - src/sim/uart_tx/pkgs/params_pkg.sv
-    - src/sim/uart_tx/pkgs/trn_cfg_pkg.sv
-    - src/sim/uart_tx/pkgs/trn_structs_pkg.sv
-    - src/sim/uart_tx/pkgs/tb_components_pkg.sv
-    - src/sim/uart_tx/uart_if.sv
-    - src/sim/uart_tx/top_tb.sv
+    - src/sim/mod/uart_tx/pkgs/trn_cfg_pkg.sv
+    - src/sim/mod/uart_tx/pkgs/trn_structs_pkg.sv
+    - src/sim/mod/uart_tx/pkgs/tb_components_pkg.sv
+    - src/sim/mod/uart_tx/top_tb.sv
 

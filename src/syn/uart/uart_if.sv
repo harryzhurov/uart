@@ -10,8 +10,6 @@ interface uart_if;
     logic            rxc;
     logic            txc;
 
-    logic            init_en;
-
     logic [WORD-1:0] rx_data;
     logic [WORD-1:0] rx_buffer;
     logic            rx_rden;
@@ -33,7 +31,6 @@ interface uart_if;
     (
         input  clk,
         input  baud_tick,
-        input  init_en,
 
         input  rxc,
         input  rx_rden,

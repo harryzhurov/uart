@@ -23,6 +23,7 @@ module uart
 //
 logic [9:0] baud_cnt = 0;
 logic [1:0] init     = 0;
+logic       init_en  = 0;
 //=======================================================
 //
 //          Process
@@ -32,9 +33,9 @@ logic [1:0] init     = 0;
 //  Initialization
 //
 always_ff @(posedge ifs.clk) begin
-    init[0]     <= 1'b1;
-    init[1]     <= init[0];
-    ifs.init_en <= init[0] && (!init[1]);
+    init[0] <= 1'b1;
+    init[1] <= init[0];
+    init_en <= init[0] && (!init[1]);
 end
 //-------------------------------------------------------
 //
@@ -59,7 +60,7 @@ always_ff @(posedge ifs.clk) begin
 
     ifs.rx_complete <= 1'b0;
     
-    if(ifs.init_en) begin
+    if(init_en) begin
         ifs.rx_complete <= 1'b0;
         ifs.frame_error <= 1'b0;
         ifs.overrun     <= 1'b0;
@@ -90,7 +91,7 @@ always_ff @(posedge ifs.clk) begin
 
     ifs.tx_complete <= 1'b0;
 
-    if(ifs.init_en) begin
+    if(init_en) begin
         ifs.tx_buffer   <= 8'h00;
         ifs.tx_complete <= 1'b0;
         ifs.tx_empty    <= 1'b1;

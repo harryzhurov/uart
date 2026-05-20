@@ -117,7 +117,6 @@ uart_tx u_tx
 (
     .clk          ( ifs.clk          ),
     .baud_tick    ( ifs.baud_tick    ),
-    .init_en      ( ifs.init_en      ),
     .txc          ( ifs.txc          ),
     .tx_empty_clr ( ifs.tx_empty_clr ),
     .tx_buffer    ( ifs.tx_buffer    ),
@@ -129,7 +128,6 @@ uart_rx u_rx
 (
     .clk          ( ifs.clk          ),
     .baud_tick    ( ifs.baud_tick    ),
-    .init_en      ( ifs.init_en      ),
     .rxc          ( ifs.rxc          ),
     .rx_buffer    ( ifs.rx_buffer    ),
     .rx_done      ( ifs.rx_done      )

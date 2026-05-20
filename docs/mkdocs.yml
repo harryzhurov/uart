@@ -22,10 +22,8 @@ nav:
     - RTL:       
         - Аппаратная часть          : src/hw/hw.md
     - Testbench:       
-        - Организация               : src/sw/sw.md
-        - Рандомизация              : src/sw/rd.md
-        - Драйвер                   : src/sw/dr.md
-        - Проверка                  : src/sw/cm.md
+        - Верификация               : src/sw/tb.md
+
 
 extra_javascript:
     - js/mathjax.js

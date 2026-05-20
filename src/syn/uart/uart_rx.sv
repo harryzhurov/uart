@@ -11,7 +11,6 @@ module uart_rx (
 
     input  logic            rxc,
 
-    input  logic            init_en,
     output logic            rx_done,
     output logic [WORD-1:0] rx_buffer
 );

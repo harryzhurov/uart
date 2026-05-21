@@ -11,7 +11,6 @@ class Environment;
     
     mailbox #( rx_trn_t ) gen2drv_rx;
     mailbox #(mnt_rcvd_t) mnt2scb_rx;
-    mailbox #( rx_trn_t ) gen2mnt_rx;
     
     virtual uart_if vif;
     
@@ -24,7 +23,6 @@ class Environment;
     
         gen2drv_rx  = new();
         mnt2scb_rx  = new();
-        gen2mnt_rx  = new();
         
         gen = new(gen2drv_rx,gen2scb_rx,gen2mnt_rx);
         drv = new(gen2drv_rx,vif,sem_scb2drv);

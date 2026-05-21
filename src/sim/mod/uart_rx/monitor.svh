@@ -12,7 +12,6 @@ class Monitor;
     mnt_rcvd_t mnt_data;
 
     mailbox #(mnt_rcvd_t) mnt2scb_rx;
-    mailbox #( rx_trn_t ) gen2mnt_rx;
     
     covergroup rx_data_cg @(posedge vif.clk);
         rx_data : coverpoint vif.rx_data
@@ -52,11 +51,9 @@ class Monitor;
     endgroup
     
     function new(mailbox #(mnt_rcvd_t) mnt2scb_rx ,
-                 mailbox #( rx_trn_t ) gen2mnt_rx ,
                  virtual               uart_if vif);
     
         this.mnt2scb_rx = mnt2scb_rx;
-        this.gen2mnt_rx = gen2mnt_rx;
         this.vif        = vif;
         rx_data_cg      = new();
         rx_del_cg       = new();

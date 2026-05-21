@@ -14,6 +14,7 @@ class Scoreboard;
     
     semaphore sem_scb2drv;
     
+    mailbox #( rx_trn_t ) drv2scb_rx;
     mailbox #(mnt_rcvd_t) mnt2scb_rx;
     
     virtual uart_if uif;
@@ -59,9 +60,11 @@ class Scoreboard;
 
     endgroup
     
+    function new(mailbox #( rx_trn_t ) drv2scb_rx ,
                  mailbox #(mnt_rcvd_t) mnt2scb_rx ,
                  semaphore             sem_scb2drv);
     
+        this.drv2scb_rx  = drv2scb_rx;
         this.mnt2scb_rx  = mnt2scb_rx;
         this.sem_scb2drv = sem_scb2drv;
         rx_data_cg       = new();
@@ -85,7 +88,7 @@ class Scoreboard;
 
     function check_frame_error;
         if(rx_tr_scb.stop_bit == mnt_data.frame_error) begin
-            $display("INFO (ERROR) (rx) : frame error, time = [%t]", $realtime);
+            $display("INFO (ERROR) (rx) : frame error, frame id = %d",rx_tr_scb.id);
             err++;
             return 1;
         end
@@ -96,20 +99,18 @@ class Scoreboard;
 
         forever begin
 
-            gen2scb_rx.get(rx_tr_scb);
+            drv2scb_rx.get(rx_tr_scb);
             mnt2scb_rx.get(mnt_data );
 
             for(int i=0; i<WORD; i++) begin
                 rx_reversed_data[i] = mnt_data.data[WORD-1-i];
             end
+            
+            check_rx_data;
+            check_frame_error;
 
-            if(!rx_tr_scb.drop_rx) begin
-
-                if(check_rx_data & check_frame_error)
-                    sem_scb2drv.put(1);
-
-            end
             num_trn_rx++;
+            
             rx_data_cg.sample();
             rx_del_cg.sample();
 
@@ -117,13 +118,9 @@ class Scoreboard;
 
     endtask
     
-    task automatic run();
-        
-        fork
-            
+    task run();
+
             check_rx();
-        
-        join
     
     endtask
 

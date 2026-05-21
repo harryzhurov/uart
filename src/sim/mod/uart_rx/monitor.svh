@@ -25,59 +25,38 @@ class Monitor;
 
         forever begin
 
-            gen2mnt_rx.get(rx_tr_mnt);
-
             fork
             begin
-                if(!rx_tr_mnt.drop_rx) begin
-                    @(vif.rx_data, posedge vif.rx_complete, posedge vif.overrun) begin
+                @(vif.rx_data, posedge vif.rx_complete, posedge vif.overrun);
 
-                        mnt_data.data        = vif.rx_data;
-                        mnt_data.frame_error = vif.frame_error;
-                        mnt_data.overrun     = vif.overrun;
-                        mnt2scb_rx.put(mnt_data);
-
-                        if(vif.overrun | vif.frame_error) begin
-                            reset_err();
-                        end
-                    end
-                end
-                else begin
+                mnt_data.data        = vif.rx_data;
+                mnt_data.frame_error = vif.frame_error;
+                mnt_data.overrun     = vif.overrun;
+                if(num_trn_rx != 0)
                     mnt2scb_rx.put(mnt_data);
+
+                if(vif.overrun | vif.frame_error) begin
+                    reset_err();
                 end
 
                 num_trn_rx++;
+                
+                #UART_CYCLE;
 
                 //$display("monitor (rx) : data received = %h", vif.rx_data);
                 //$display("monitor (rx) : Num transaction = %d", num_trn_rx);
             end
             begin
-                rx_rden_send();
+                rx_catch_complete();
             end
             join_any
         end
 
     endtask
     
-    task automatic rx_rden_send();
+    task automatic rx_catch_complete();
 
-        //$display("rx_rden_send start[%t]", $realtime);
-
-        @(posedge vif.rx_complete) begin
-
-
-            //$display("INFO: rden_delay = %d", rx_mnt_dels.rden_delay);
-            //$display("INFO: send_delay = %d", rx_mnt_dels.send_delay);
-
-            #(rx_tr_mnt.rden_delay*CLK_CYCLE);
-
-            @(posedge vif.clk) vif.rx_rden = 1;
-            @(posedge vif.clk) vif.rx_rden = 0;
-
-
-        end
-
-        //$display("rx_rden_send complete [%t]", $realtime);
+        @(posedge vif.rx_complete) -> vif.rx_rden_en;
 
     endtask
     
@@ -92,6 +71,9 @@ class Monitor;
     task automatic run();
     
         fork
+
+            @(negedge vif.init_en);
+            #CLK_CYCLE;
         
             receive_rx();
             

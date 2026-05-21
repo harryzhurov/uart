@@ -14,12 +14,15 @@ class Driver;
     rx_trn_t rx_tr_drv;
 
     mailbox #(rx_trn_t) gen2drv_rx;
+    mailbox #(rx_trn_t) drv2scb_rx;
     
     function new(mailbox #(rx_trn_t) gen2drv_rx ,
+                 mailbox #(rx_trn_t) drv2scb_rx ,
                  virtual             uart_if vif,
                  semaphore           sem_scb2drv);
     
         this.gen2drv_rx  = gen2drv_rx;
+        this.drv2scb_rx  = drv2scb_rx;
         this.vif         = vif;
         this.sem_scb2drv = sem_scb2drv;
     
@@ -63,6 +66,8 @@ class Driver;
 
                 vif.rxc = 1;
                 #(UART_CYCLE);
+                
+                drv2scb_rx.put(rx_tr_drv);
 
             end
         end

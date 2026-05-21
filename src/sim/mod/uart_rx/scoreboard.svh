@@ -14,16 +14,13 @@ class Scoreboard;
     
     semaphore sem_scb2drv;
     
-    mailbox #( rx_trn_t ) gen2scb_rx;
     mailbox #(mnt_rcvd_t) mnt2scb_rx;
     
     virtual uart_if uif;
     
-    function new(mailbox #( rx_trn_t ) gen2scb_rx ,
                  mailbox #(mnt_rcvd_t) mnt2scb_rx ,
                  semaphore             sem_scb2drv);
     
-        this.gen2scb_rx  = gen2scb_rx;
         this.mnt2scb_rx  = mnt2scb_rx;
         this.sem_scb2drv = sem_scb2drv;
     

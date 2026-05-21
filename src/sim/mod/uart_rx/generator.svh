@@ -14,11 +14,9 @@ class Generator;
     mailbox #(rx_trn_t) gen2mnt_rx;
     
     function new(mailbox #(rx_trn_t) gen2drv_rx,
-                 mailbox #(rx_trn_t) gen2scb_rx,
                  mailbox #(rx_trn_t) gen2mnt_rx);
     
         this.gen2drv_rx = gen2drv_rx;
-        this.gen2scb_rx = gen2scb_rx;
         this.gen2mnt_rx = gen2mnt_rx;
         
     endfunction
@@ -41,7 +39,6 @@ class Generator;
             rx_tr_gen.id          = rx_trn.id;
 
             gen2drv_rx.put(rx_tr_gen);
-            gen2scb_rx.put(rx_tr_gen);
             gen2mnt_rx.put(rx_tr_gen);
 
         end

@@ -10,7 +10,6 @@ class Environment;
     Scoreboard  scb;
     
     mailbox #( rx_trn_t ) gen2drv_rx;
-    mailbox #( rx_trn_t ) gen2scb_rx;
     mailbox #(mnt_rcvd_t) mnt2scb_rx;
     mailbox #( rx_trn_t ) gen2mnt_rx;
     
@@ -24,7 +23,6 @@ class Environment;
         sem_scb2drv = new();
     
         gen2drv_rx  = new();
-        gen2scb_rx  = new();
         mnt2scb_rx  = new();
         gen2mnt_rx  = new();
         

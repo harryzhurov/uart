@@ -9,7 +9,7 @@ parameter int  num_trn_rx          = 1000;
 //
 //      Rx setting
 //
-parameter int wrong_stop_exist_rx =  2;      // probability of stop bit = 0-------------------------------\
+parameter int wrong_stop_exist_rx =  1;      // probability of stop bit = 0-------------------------------\
 parameter int send_del_exist_rx   = 10;      // probability of delay existance before data sending         \
 parameter int rden_del_exist_rx   =  8;      // probability of delay existance before rx_rden flag sending  > (%)
 parameter int zero_data_rx        =  6;      // probability of data = 2'h00                                /

@@ -7,19 +7,22 @@ import params_pkg::*;
 //=======================================================
 module uart_tx (
     input  logic            clk,
+    input  logic            baud_tick,
+    input  logic            init_en,
 
     output logic            txc,
-    input  logic            baud_tick,
 
-    input  logic [WORD-1:0] tx_buffer,
-    input  logic            tx_empty,
-    output logic            tx_empty_clr,
+    input  logic [WORD-1:0] tx_data,
+    input  logic            tx_wren,
+    output logic            tx_empty,
     output logic            tx_done
 );
 //=======================================================
 //
 //          Structs
 //
+typedef logic [WORD-1:0] data_t;
+
 typedef enum logic[1:0]
 {
     TX_STATE_HOLD,
@@ -40,11 +43,11 @@ tx_state_t;
 //
 //          Logic
 //
-logic [WORD-1:0] tx_shift        = 0;
-logic [     3:0] tx_bit_cnt      = 0;
+data_t      tx_shift        = 0;
+logic [3:0] tx_bit_cnt      = 0;
 
-tx_stat_t        tx_stat         = TX_STATE_HOLD;
-tx_state_t       tx_state        = TX_IDLE;
+tx_stat_t   tx_stat         = TX_STATE_HOLD;
+tx_state_t  tx_state        = TX_IDLE;
 //=======================================================
 //
 //          Processes
@@ -74,6 +77,16 @@ end
 //
 always_ff @(posedge clk) begin
 
+    if(init_en) begin
+        txc      <= 1'b0;
+        tx_empty <= 1'b1;
+    end
+    
+    if(tx_wren) begin
+        tx_shift <= tx_data;
+        tx_empty <= 1'b0;
+    end
+
     tx_done <= 1'b0;
 
     case (tx_state)
@@ -84,16 +97,15 @@ always_ff @(posedge clk) begin
 
         if (!tx_empty) begin
 
-            tx_shift     <= tx_buffer;
-            tx_empty_clr <= 1'b1;
-            tx_stat      <= TX_STATE_NEXT;
+            tx_empty <= 1'b1;
+            tx_stat  <= TX_STATE_NEXT;
 
         end
     end
     TX_START: begin
 
-        tx_empty_clr <= 1'b0;
-        tx_stat      <= TX_STATE_HOLD;
+        tx_empty <= 1'b0;
+        tx_stat  <= TX_STATE_HOLD;
 
         if (baud_tick) begin
 
@@ -127,9 +139,9 @@ always_ff @(posedge clk) begin
 
             if (!tx_empty) begin
 
-                tx_shift     <= tx_buffer;
-                tx_empty_clr <= 1'b1;
-                tx_stat      <= TX_STATE_START;
+                tx_shift <= tx_data;
+                tx_empty <= 1'b1;
+                tx_stat  <= TX_STATE_START;
 
             end else begin
 

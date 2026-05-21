@@ -102,6 +102,26 @@ class Driver;
         //$display("rx_run done, num = %d, time [%t]",num_trn_rx, $realtime);
 
     endtask
+    
+    task automatic rx_rden_send();
+
+
+        @(posedge vif.rx_rden_en) begin
+
+
+            //$display("INFO: rden_delay = %d", rx_mnt_dels.rden_delay);
+            //$display("INFO: send_delay = %d", rx_mnt_dels.send_delay);
+
+            #(rx_tr_drv.rden_delay*CLK_CYCLE);
+
+            @(posedge vif.clk) vif.rx_rden = 1;
+            @(posedge vif.clk) vif.rx_rden = 0;
+
+        end
+
+        //$display("rx_rden_send complete [%t]", $realtime);
+
+    endtask
 
     task automatic reinit_rxc();
 

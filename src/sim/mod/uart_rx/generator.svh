@@ -13,7 +13,7 @@ class Generator;
     mailbox #(rx_trn_t) gen2scb_rx;
     mailbox #(rx_trn_t) gen2mnt_rx;
     
-    function new(mailbox #(rx_trn_t) gen2drv_rx,
+    function new(mailbox #(rx_trn_t) gen2drv_rx);
     
         this.gen2drv_rx = gen2drv_rx;
         
@@ -44,11 +44,7 @@ class Generator;
     
     task run();
 
-        fork
-
             run_rx();
-
-        join
 
     endtask
     

@@ -56,8 +56,6 @@ always_ff @(posedge ifs.clk) begin
 //-----------------------------------
 //  RX Control part
 //-----------------------------------
-
-    ifs.rx_complete <= 1'b0;
     
     if(ifs.init_en) begin
         ifs.rx_complete <= 1'b0;
@@ -76,7 +74,7 @@ always_ff @(posedge ifs.clk) begin
     if(ifs.rx_rden)
         ifs.rx_complete <= 1'b0;
 
-    if (ifs.rx_done & !ifs.rxc)
+    if(ifs.rx_done & !ifs.rxc)
         ifs.frame_error <= 1'b1;
 
     if(ifs.rx_done & ifs.rx_complete)

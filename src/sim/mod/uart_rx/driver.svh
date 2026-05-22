@@ -7,6 +7,8 @@ class Driver;
     virtual uart_if vif;
 
     int    num_trn_rx;
+    int    percent;
+    int    last_percent = -1;
     data_t reversed_data;
     
     rx_trn_t rx_tr_drv;
@@ -21,13 +23,23 @@ class Driver;
         this.drv2scb_rx  = drv2scb_rx;
         this.vif         = vif;
     
-    endfunction 
+    endfunction
+    
+    function void meas_percent;
+        percent = (this.num_trn_rx*100) / (trn_cfg_pkg::num_trn_rx);
+
+        if (percent != last_percent && (percent % 10 == 0 || percent == 100)) begin
+            $display("INFO: Driver completed %0d%% (%0d/%0d)", percent, this.num_trn_rx, trn_cfg_pkg::num_trn_rx);
+            last_percent = percent;
+        end
+    endfunction
     
     task automatic run_rx();
 
         forever begin
 
             gen2drv_rx.get(rx_tr_drv);
+            meas_percent;
 
 
                 fork

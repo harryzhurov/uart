@@ -22,13 +22,14 @@ class Rx_transaction;
     constraint data_cnstr
     {
         data        inside {[0:255]};
-        drop_rx_del inside {[0:UART_CYCLE*10]};
+        drop_rx_del inside {[0:0],[UART_CYCLE:UART_CYCLE*8]};
 
         stop_bit    dist  {0 := (wrong_stop_exist_rx), 1       := (100 - wrong_stop_exist_rx)};
         data        dist  {0 := (zero_data_rx)       , [1:255] := (100 - zero_data_rx)       };
         drop_rx     dist  {0 := (100 - drop_rx_trn)  , 1       := (drop_rx_trn)              };
 
         (drop_rx==0) -> (drop_rx_del==0);
+        (drop_rx==1) -> (drop_rx_del!=0);
         solve drop_rx before drop_rx_del;
 
     }

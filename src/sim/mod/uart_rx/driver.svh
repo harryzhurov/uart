@@ -104,16 +104,16 @@ class Driver;
     
     task automatic rx_rden_send();
 
+        forever begin
 
-        @(posedge vif.rx_rden_en) begin
 
-
+            @(vif.rx_rden_en);
 
             #(rx_tr_drv.rden_delay*CLK_CYCLE);
 
             @(posedge vif.clk) vif.rx_rden = 1;
             @(posedge vif.clk) vif.rx_rden = 0;
-
+            
         end
 
     endtask
@@ -125,11 +125,21 @@ class Driver;
 
     endtask
     
+    task automatic reset_error();
+        forever begin
+            @(vif.reset_err);
+            @(posedge vif.clk) vif.rst_err = 1;
+            @(posedge vif.clk) vif.rst_err = 0;
+        end
+    endtask
+    
     task automatic run();
     
         fork
         
             run_rx();
+            rx_rden_send();
+            reset_error();
         
         join
     

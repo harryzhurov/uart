@@ -45,7 +45,7 @@ class Environment;
         
         fork
 
-            scb.run;
+            scb.run();
             
         join_none
         

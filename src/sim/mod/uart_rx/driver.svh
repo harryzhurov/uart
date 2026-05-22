@@ -79,8 +79,6 @@ class Driver;
 
     task automatic send_rx();
 
-        //$display("rx_run start, num = %d, time [%t]",num_trn_rx, $realtime);
-
         #(rx_tr_drv.send_delay*CLK_CYCLE);
 
         wait(vif.baud_pulse);
@@ -100,10 +98,7 @@ class Driver;
             reversed_data[i] = rx_tr_drv.data[7-i];
         end
 
-        //$display("driver (rx): data sent = %h", reversed_data);
-        //$display("driver (rx): Num transaction = %d", num_trn_rx);
 
-        //$display("rx_run done, num = %d, time [%t]",num_trn_rx, $realtime);
 
     endtask
     
@@ -113,8 +108,6 @@ class Driver;
         @(posedge vif.rx_rden_en) begin
 
 
-            //$display("INFO: rden_delay = %d", rx_mnt_dels.rden_delay);
-            //$display("INFO: send_delay = %d", rx_mnt_dels.send_delay);
 
             #(rx_tr_drv.rden_delay*CLK_CYCLE);
 
@@ -122,8 +115,6 @@ class Driver;
             @(posedge vif.clk) vif.rx_rden = 0;
 
         end
-
-        //$display("rx_rden_send complete [%t]", $realtime);
 
     endtask
 

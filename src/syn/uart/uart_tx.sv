@@ -44,6 +44,7 @@ tx_state_t;
 //          Logic
 //
 data_t      tx_shift        = 0;
+data_t      tx_buffer       = 0;
 logic [3:0] tx_bit_cnt      = 0;
 
 tx_stat_t   tx_stat         = TX_STATE_HOLD;
@@ -78,13 +79,15 @@ end
 always_ff @(posedge clk) begin
 
     if(init_en) begin
-        txc      <= 1'b0;
+        txc      <= 1'b1;
         tx_empty <= 1'b1;
     end
     
     if(tx_wren) begin
-        tx_shift <= tx_data;
-        tx_empty <= 1'b0;
+
+        tx_empty  <= 1'b0;
+        tx_buffer <= tx_data;
+
     end
 
     tx_done <= 1'b0;
@@ -97,6 +100,7 @@ always_ff @(posedge clk) begin
 
         if (!tx_empty) begin
 
+            tx_shift <= tx_buffer;
             tx_empty <= 1'b1;
             tx_stat  <= TX_STATE_NEXT;
 
@@ -104,7 +108,6 @@ always_ff @(posedge clk) begin
     end
     TX_START: begin
 
-        tx_empty <= 1'b0;
         tx_stat  <= TX_STATE_HOLD;
 
         if (baud_tick) begin
@@ -139,7 +142,7 @@ always_ff @(posedge clk) begin
 
             if (!tx_empty) begin
 
-                tx_shift <= tx_data;
+                tx_shift <= tx_buffer;
                 tx_empty <= 1'b1;
                 tx_stat  <= TX_STATE_START;
 

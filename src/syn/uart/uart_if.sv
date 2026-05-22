@@ -18,15 +18,16 @@ interface uart_if;
     logic            overrun;
     logic            rst_err;
     logic            rx_done;
-    
-    event            rx_rden_en;
 
     logic [WORD-1:0] tx_data;
     logic            tx_wren;
     logic            tx_empty;
     logic            tx_complete;
     logic            tx_done;
-    logic            tx_empty_clr;
+    
+    event            rx_rden_en;
+    event            reset_err;
+    event            rx_trn_drop;
 //=======================================================
     modport uart_mp
     (
@@ -70,6 +71,6 @@ interface uart_if;
         input  tx_empty,
         input  tx_complete
     );
- //=======================================================
+ //======================================================
 endinterface
 //=======================================================

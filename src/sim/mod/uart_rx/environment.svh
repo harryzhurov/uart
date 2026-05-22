@@ -64,16 +64,16 @@ class Environment;
     endtask
     
     task automatic run_wait_end();
-    
         fork
-            
-            wait(drv.num_trn_rx == trn_cfg_pkg::num_trn_rx);
-            $display("INFO: Driver finished");
+        begin
             wait(mnt.num_trn_rx == trn_cfg_pkg::num_trn_rx);
             $display("INFO: Monitor finished");
-        
+        end
+        begin
+            wait(drv.num_trn_rx == trn_cfg_pkg::num_trn_rx);
+            $display("INFO: Driver finished");
+        end
         join
-        
     endtask
 
 endclass : Environment

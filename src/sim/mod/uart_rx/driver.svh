@@ -18,6 +18,7 @@ class Driver;
     
     function new(mailbox #(rx_trn_t) gen2drv_rx ,
                  mailbox #(rx_trn_t) drv2scb_rx ,
+                 virtual             uart_if vif);
     
         this.gen2drv_rx  = gen2drv_rx;
         this.drv2scb_rx  = drv2scb_rx;
@@ -39,41 +40,20 @@ class Driver;
         forever begin
 
             gen2drv_rx.get(rx_tr_drv);
+            
+            send_rx();
+
+            num_trn_rx++;
+            
+            $display("DRIVER : num_trn_rx = ",num_trn_rx);
+            
+            if(num_trn_rx == 172 || num_trn_rx == 173)
+                $display("data = %h, drop = %h, [%time]", rx_tr_drv.data, rx_tr_drv.drop_rx, $realtime);
+            
             meas_percent;
+            
+            drv2scb_rx.put(rx_tr_drv);
 
-
-                fork
-                    begin : dropping_rx
-
-                        if(rx_tr_drv.drop_rx) begin
-
-                            #(rx_tr_drv.drop_rx_del) $display("DROP RX!, time = [%t]",$realtime);
-                            disable normal_transaction_rx;
-
-                        end
-                        else begin
-                            #(1000*UART_CYCLE);
-                        end
-
-                    end
-                    begin : normal_transaction_rx
-
-                        send_rx();
-                        disable dropping_rx;
-
-                    end
-                join_any
-
-                num_trn_rx++;
-
-                disable fork;
-
-                vif.rxc = 1;
-                #(UART_CYCLE);
-                
-                drv2scb_rx.put(rx_tr_drv);
-
-            end
         end
     endtask
 
@@ -83,23 +63,50 @@ class Driver;
 
         wait(vif.baud_pulse);
         vif.rxc = 0;
+        
+        fork
+        begin : dropping
 
-        for(int i=0; i<WORD; i++) begin
+            if(rx_tr_drv.drop_rx) begin
+
+                #(rx_tr_drv.drop_rx_del);
+                //$display("DROP, [%t]", $realtime);
+                disable normal_transaction;
+                vif.rxc = 1;
+
+            end
+            else begin
+               #(10000*UART_CYCLE);
+            end
+        end
+        begin : normal_transaction
+
+            for(int i=0; i<WORD; i++) begin
+                #(UART_CYCLE);
+                vif.rxc = rx_tr_drv.data[i];
+            end
+
+            #(UART_CYCLE) vif.rxc = rx_tr_drv.stop_bit;
+
+            #(UART_CYCLE) vif.rxc = 1;
             #(UART_CYCLE);
-            vif.rxc = rx_tr_drv.data[i];
+
+            for(int i = 0; i < WORD; ++i) begin
+                reversed_data[i] = rx_tr_drv.data[7-i];
+            end
+            
+            vif.rxc = 1;
+            #(UART_CYCLE);
+
+            
+            disable dropping;
+            
         end
-
-        #(UART_CYCLE) vif.rxc = rx_tr_drv.stop_bit;
-
-        #(UART_CYCLE) vif.rxc = 1;
-        #(UART_CYCLE);
-
-        for(int i = 0; i < WORD; ++i) begin
-            reversed_data[i] = rx_tr_drv.data[7-i];
-        end
-
-
-
+        
+        join_any
+        
+        disable fork;
+        
     endtask
     
     task automatic rx_rden_send();

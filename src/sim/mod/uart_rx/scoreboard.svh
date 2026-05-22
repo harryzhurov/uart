@@ -4,9 +4,8 @@
 //
 class Scoreboard;
 
-    int err        = 0;
-    int num_trn_rx = 0;
-
+    int    err              =  0;
+    int    num_trn_rx       =  0;
     int    percent          =  0;
     int    last_percent     = -1;
     data_t rx_reversed_data;
@@ -14,13 +13,9 @@ class Scoreboard;
     rx_trn_t   rx_tr_scb;
     mnt_rcvd_t mnt_data;
     
-    semaphore sem_scb2drv;
-    
     mailbox #( rx_trn_t ) drv2scb_rx;
     mailbox #(mnt_rcvd_t) mnt2scb_rx;
-    
-    virtual uart_if uif;
-    
+
     covergroup rx_data_cg;
         rx_data : coverpoint mnt_data.data
         {
@@ -62,13 +57,11 @@ class Scoreboard;
 
     endgroup
     
-    function new(mailbox #( rx_trn_t ) drv2scb_rx ,
-                 mailbox #(mnt_rcvd_t) mnt2scb_rx ,
-                 semaphore             sem_scb2drv);
+    function new(mailbox #( rx_trn_t ) drv2scb_rx,
+                 mailbox #(mnt_rcvd_t) mnt2scb_rx);
     
         this.drv2scb_rx  = drv2scb_rx;
         this.mnt2scb_rx  = mnt2scb_rx;
-        this.sem_scb2drv = sem_scb2drv;
         rx_data_cg       = new();
         rx_del_cg        = new();
     
@@ -76,16 +69,19 @@ class Scoreboard;
     
     
     function check_rx_data;
-        if(rx_tr_scb.data !== rx_reversed_data) begin
+        if(!rx_tr_scb.drop_rx) begin
 
-            $display("INFO (ERROR) (rx) : bad frame = %d, time = [%t]",num_trn_rx, $realtime);
-            $display("      Sent data = %h, Received = %h",rx_tr_scb.data,rx_reversed_data);
-            err++;
-            return 1;
+            if(rx_tr_scb.data !== rx_reversed_data) begin
+
+                $display("INFO (ERROR) (rx) : bad frame = %d, time = [%t]",num_trn_rx, $realtime);
+                $display("      Sent data = %h, Received = %h",rx_tr_scb.data,rx_reversed_data);
+                err++;
+                return 1;
+            end
+            return 0;
         end
-
-        return 0;
-
+        else
+            return 0;
     endfunction
 
     function check_frame_error;
@@ -126,14 +122,14 @@ class Scoreboard;
             
             rx_data_cg.sample();
             rx_del_cg.sample();
-
+            
         end
 
     endtask
     
     task run();
 
-            check_rx();
+        check_rx();
     
     endtask
 

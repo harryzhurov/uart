@@ -10,8 +10,10 @@ class Monitor;
     int    percent      =  0;
     int    last_percent = -1;
     data_t tx_data_mnt;
+    
+    tx_pak_t tx_pak_mnt;
 
-    mailbox #(data_t) mnt2scb_tx;
+    mailbox #(tx_pak_t) mnt2scb_tx;
     
     covergroup tx_data_cg @(posedge vif.clk);
         tx_data : coverpoint tx_data_mnt
@@ -27,8 +29,8 @@ class Monitor;
 
     endgroup
     
-    function new(mailbox #(data_t) mnt2scb_tx ,
-                 virtual           uart_if vif);
+    function new(mailbox #(tx_pak_t) mnt2scb_tx ,
+                 virtual             uart_if vif);
     
         this.mnt2scb_tx = mnt2scb_tx;
         this.vif        = vif;
@@ -46,32 +48,34 @@ class Monitor;
     endfunction
     
     task automatic receive_tx();
+
         forever begin
-            wait(!vif.txc);
+
+            @(negedge vif.txc);
+            
             #(UART_CYCLE+UART_CYCLE/2);
     
             for(int i=0; i<WORD; i++) begin
                 tx_data_mnt = {tx_data_mnt[WORD-2:0],vif.txc};
                 #UART_CYCLE;
             end
-
-            tx_data_cg.sample();
-            mnt2scb_tx.put(tx_data_mnt);
+            
+            tx_pak_mnt.data = tx_data_mnt;
+            tx_pak_mnt.id   = num_trn_tx;
+            mnt2scb_tx.put(tx_pak_mnt);
             
             num_trn_tx++;
+
+            tx_data_cg.sample();
             meas_percent;
     
         end
     endtask
     
     task automatic run();
-    
-        fork
-        
-            receive_tx();
+
+        receive_tx();
             
-        join        
-        
     endtask
 
 endclass : Monitor

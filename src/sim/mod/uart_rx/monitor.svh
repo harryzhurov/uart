@@ -6,7 +6,7 @@ class Monitor;
 
     virtual uart_if vif;
 
-    int num_trn_rx;
+    int num_trn_rx   =  0;
     int percent      =  0;
     int last_percent = -1;
 
@@ -38,46 +38,32 @@ class Monitor;
 
             fork
             begin
-                @(vif.rx_data, posedge vif.rx_complete, posedge vif.overrun);
+                @(posedge vif.rx_complete, posedge vif.overrun);
 
                 mnt_data.data        = vif.rx_data;
                 mnt_data.frame_error = vif.frame_error;
                 mnt_data.overrun     = vif.overrun;
-                if(num_trn_rx != 0)
-                    mnt2scb_rx.put(mnt_data);
 
-                if(vif.overrun | vif.frame_error) begin
-                    reset_err();
-                end
+                mnt2scb_rx.put(mnt_data);
 
                 num_trn_rx++;
                 
-                #UART_CYCLE;
+                $display("MONITOR : num_trn_rx = %d", num_trn_rx);
 
                 meas_percent;
-                //$display("monitor (rx) : data received = %h", vif.rx_data);
-                //$display("monitor (rx) : Num transaction = %d", num_trn_rx);
+
             end
             begin
-                rx_catch_complete();
+                @(posedge vif.rx_complete)
+                -> vif.rx_rden_en;
+            end
+            begin
+                @(posedge vif.frame_error, posedge vif.overrun);
+                -> vif.reset_err;
             end
             join_any
         end
 
-    endtask
-    
-    task automatic rx_catch_complete();
-
-        @(posedge vif.rx_complete) -> vif.rx_rden_en;
-
-    endtask
-    
-    
-    task automatic reset_err();
-    
-        @(posedge vif.clk) vif.rst_err = 1;
-        @(posedge vif.clk) vif.rst_err = 0;
-        
     endtask
     
     task automatic run();
@@ -85,7 +71,6 @@ class Monitor;
         fork
 
             @(negedge vif.init_en);
-            #CLK_CYCLE;
         
             receive_rx();
             

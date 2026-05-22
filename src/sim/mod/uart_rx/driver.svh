@@ -5,8 +5,6 @@
 class Driver;
 
     virtual uart_if vif;
-    
-    semaphore sem_scb2drv;
 
     int    num_trn_rx;
     data_t reversed_data;
@@ -18,13 +16,10 @@ class Driver;
     
     function new(mailbox #(rx_trn_t) gen2drv_rx ,
                  mailbox #(rx_trn_t) drv2scb_rx ,
-                 virtual             uart_if vif,
-                 semaphore           sem_scb2drv);
     
         this.gen2drv_rx  = gen2drv_rx;
         this.drv2scb_rx  = drv2scb_rx;
         this.vif         = vif;
-        this.sem_scb2drv = sem_scb2drv;
     
     endfunction 
     
@@ -34,9 +29,6 @@ class Driver;
 
             gen2drv_rx.get(rx_tr_drv);
 
-            if(sem_scb2drv.try_get(1))
-                reinit_rxc();
-            else begin
 
                 fork
                     begin : dropping_rx

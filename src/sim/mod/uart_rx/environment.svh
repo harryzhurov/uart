@@ -15,21 +15,18 @@ class Environment;
     
     virtual uart_if vif;
     
-    semaphore sem_scb2drv;
-    
     function new(virtual uart_if vif);
 
         this.vif    = vif;
-        sem_scb2drv = new();
     
         gen2drv_rx  = new();
         drv2scb_rx  = new();
         mnt2scb_rx  = new();
         
         gen = new(gen2drv_rx);
-        drv = new(gen2drv_rx,drv2scb_rx,vif,sem_scb2drv);
+        drv = new(gen2drv_rx,drv2scb_rx,vif);
         mnt = new(mnt2scb_rx,vif);
-        scb = new(drv2scb_rx,mnt2scb_rx,sem_scb2drv);
+        scb = new(drv2scb_rx,mnt2scb_rx);
         
     endfunction;
     

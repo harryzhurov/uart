@@ -9,6 +9,8 @@ class Driver;
     semaphore sem_scb2drv;
 
     int num_trn_tx;
+    int percent      =  0;
+    int last_percent = -1;
     
     tx_trn_t tx_tr_drv;
 
@@ -22,7 +24,16 @@ class Driver;
         this.vif         = vif;
         this.sem_scb2drv = sem_scb2drv;
     
-    endfunction 
+    endfunction
+    
+    function void meas_percent;
+        percent = (this.num_trn_tx*100) / (trn_cfg_pkg::num_trn_tx);
+
+        if (percent != last_percent && (percent % 10 == 0 || percent == 100)) begin
+            $display("INFO: Driver completed %0d%% (%0d/%0d)", percent, this.num_trn_tx, trn_cfg_pkg::num_trn_tx);
+            last_percent = percent;
+        end
+    endfunction
     
     task automatic run_tx();
     
@@ -45,6 +56,8 @@ class Driver;
             #20ns;
             
             num_trn_tx++;
+            
+            meas_percent;
         
         end
     

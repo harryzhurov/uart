@@ -7,6 +7,8 @@ class Monitor;
     virtual uart_if vif;
 
     int    num_trn_tx;
+    int    percent      =  0;
+    int    last_percent = -1;
     data_t tx_data_mnt;
 
     mailbox #(data_t) mnt2scb_tx;
@@ -32,7 +34,16 @@ class Monitor;
         this.vif        = vif;
         tx_data_cg      = new();
     
-    endfunction 
+    endfunction
+    
+    function void meas_percent;
+        percent = (this.num_trn_tx*100) / (trn_cfg_pkg::num_trn_tx);
+
+        if (percent != last_percent && (percent % 10 == 0 || percent == 100)) begin
+            $display("INFO: Monitor completed %0d%% (%0d/%0d)", percent, this.num_trn_tx, trn_cfg_pkg::num_trn_tx);
+            last_percent = percent;
+        end
+    endfunction
     
     task automatic receive_tx();
         forever begin
@@ -48,6 +59,7 @@ class Monitor;
             mnt2scb_tx.put(tx_data_mnt);
             
             num_trn_tx++;
+            meas_percent;
     
         end
     endtask

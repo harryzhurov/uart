@@ -7,6 +7,8 @@ class Scoreboard;
     int err        = 0;
     int num_trn_rx = 0;
 
+    int    percent          =  0;
+    int    last_percent     = -1;
     data_t rx_reversed_data;
     
     rx_trn_t   rx_tr_scb;
@@ -94,6 +96,15 @@ class Scoreboard;
         end
         return 0;
     endfunction
+    
+    function void meas_percent;
+        percent = (this.num_trn_rx*100) / (trn_cfg_pkg::num_trn_rx);
+
+        if (percent != last_percent && (percent % 10 == 0 || percent == 100)) begin
+            $display("INFO: Scoreboard completed %0d%% (%0d/%0d)", percent, this.num_trn_rx, trn_cfg_pkg::num_trn_rx);
+            last_percent = percent;
+        end
+    endfunction
 
     task automatic check_rx();
 
@@ -108,8 +119,10 @@ class Scoreboard;
             
             check_rx_data;
             check_frame_error;
-
+            
             num_trn_rx++;
+            
+            meas_percent;
             
             rx_data_cg.sample();
             rx_del_cg.sample();

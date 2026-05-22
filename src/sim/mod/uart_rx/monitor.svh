@@ -7,6 +7,8 @@ class Monitor;
     virtual uart_if vif;
 
     int num_trn_rx;
+    int percent      =  0;
+    int last_percent = -1;
 
     rx_trn_t   rx_tr_mnt;
     mnt_rcvd_t mnt_data;
@@ -19,7 +21,16 @@ class Monitor;
         this.mnt2scb_rx = mnt2scb_rx;
         this.vif        = vif;
     
-    endfunction 
+    endfunction
+    
+    function void meas_percent;
+        percent = (this.num_trn_rx*100) / (trn_cfg_pkg::num_trn_rx);
+
+        if (percent != last_percent && (percent % 10 == 0 || percent == 100)) begin
+            $display("INFO: Monitor completed %0d%% (%0d/%0d)", percent, this.num_trn_rx, trn_cfg_pkg::num_trn_rx);
+            last_percent = percent;
+        end
+    endfunction
     
     task automatic receive_rx();
 
@@ -43,6 +54,7 @@ class Monitor;
                 
                 #UART_CYCLE;
 
+                meas_percent;
                 //$display("monitor (rx) : data received = %h", vif.rx_data);
                 //$display("monitor (rx) : Num transaction = %d", num_trn_rx);
             end

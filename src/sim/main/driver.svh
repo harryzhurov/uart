@@ -145,8 +145,6 @@ class Driver;
 
             num_trn_tx++;
 
-            //meas_percent_tx;
-
         end
 
     endtask

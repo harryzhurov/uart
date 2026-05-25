@@ -27,7 +27,7 @@ class Monitor;
         percent = (this.num_trn_tx*100) / (trn_cfg_pkg::num_trn_tx);
 
         if (percent != last_percent && (percent % 10 == 0 || percent == 100)) begin
-            $display("INFO: Monitor completed %0d%% (%0d/%0d)", percent, this.num_trn_tx, trn_cfg_pkg::num_trn_tx);
+            $display("INFO: Monitor completed %0d%%", percent);
             last_percent = percent;
         end
     endfunction

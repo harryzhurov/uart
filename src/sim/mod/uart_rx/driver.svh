@@ -45,11 +45,6 @@ class Driver;
 
             num_trn_rx++;
             
-            $display("DRIVER : num_trn_rx = ",num_trn_rx);
-            
-            if(num_trn_rx == 172 || num_trn_rx == 173)
-                $display("data = %h, drop = %h, [%time]", rx_tr_drv.data, rx_tr_drv.drop_rx, $realtime);
-            
             meas_percent;
             
             drv2scb_rx.put(rx_tr_drv);
@@ -125,13 +120,6 @@ class Driver;
 
     endtask
 
-    task automatic reinit_rxc();
-
-        vif.rxc = 1;
-        #(10*UART_CYCLE);
-
-    endtask
-    
     task automatic reset_error();
         forever begin
             @(vif.reset_err);

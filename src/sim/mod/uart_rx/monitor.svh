@@ -66,11 +66,10 @@ class Monitor;
     
     task automatic run();
     
-
-            @(negedge vif.init_en);
+        @(negedge vif.init_en);
         
-            receive_rx();
-            
+        receive_rx();
+
         
     endtask
 

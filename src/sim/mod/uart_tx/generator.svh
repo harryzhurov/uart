@@ -6,7 +6,7 @@ class Generator;
 
     Tx_transaction tx_trn;
 
-    tx_trn_t tx_tr_gen ;
+    tx_trn_t tx_tr_gen;
 
     mailbox #(tx_trn_t) gen2drv_tx;
     
@@ -29,7 +29,7 @@ class Generator;
             tx_tr_gen.data_delay  = tx_trn.data_delay;
             tx_tr_gen.id          = tx_trn.id;
             
-            gen2drv_tx.put(tx_tr_gen );
+            gen2drv_tx.put(tx_tr_gen);
             
         end
     

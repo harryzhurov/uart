@@ -71,12 +71,8 @@ class Scoreboard;
     
     
     task automatic run();
-        
-        fork
             
-            check_tx();
-        
-        join
+         check_tx();
     
     endtask
 

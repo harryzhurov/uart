@@ -48,8 +48,6 @@ class Monitor;
 
                 num_trn_rx++;
                 
-                $display("MONITOR : num_trn_rx = %d", num_trn_rx);
-
                 meas_percent;
 
             end
@@ -68,13 +66,11 @@ class Monitor;
     
     task automatic run();
     
-        fork
 
             @(negedge vif.init_en);
         
             receive_rx();
             
-        join        
         
     endtask
 

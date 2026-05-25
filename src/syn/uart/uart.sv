@@ -21,8 +21,10 @@ module uart
 //
 //          Logic
 //
-logic [9:0] baud_cnt = 0;
-logic [1:0] init     = 0;
+logic [9:0] baud_cnt  = 0;
+logic       baud_tick = 0;
+logic [1:0] init      = 0;
+logic       init_en   = 0;
 //=======================================================
 //
 //          Process
@@ -34,7 +36,7 @@ logic [1:0] init     = 0;
 always_ff @(posedge ifs.clk) begin
     init[0]     <= 1'b1;
     init[1]     <= init[0];
-    ifs.init_en <= init[0] && (!init[1]);
+    init_en <= init[0] && (!init[1]);
 end
 //-------------------------------------------------------
 //
@@ -42,10 +44,10 @@ end
 //
 always_ff @(posedge ifs.clk) begin
     baud_cnt      <= baud_cnt + 1;
-    ifs.baud_tick <= 0;
+    baud_tick <= 0;
     if (baud_cnt == BIT_PERIOD - 1) begin
         baud_cnt      <= 0;
-        ifs.baud_tick <= 1;
+        baud_tick <= 1;
     end
 end
 //-------------------------------------------------------
@@ -57,7 +59,7 @@ always_ff @(posedge ifs.clk) begin
 //  RX Control part
 //-----------------------------------
     
-    if(ifs.init_en) begin
+    if(init_en) begin
         ifs.rx_complete <= 1'b0;
         ifs.frame_error <= 1'b0;
         ifs.overrun     <= 1'b0;
@@ -86,7 +88,7 @@ always_ff @(posedge ifs.clk) begin
 
     ifs.tx_complete <= 1'b0;
 
-    if(ifs.init_en)
+    if(init_en)
         ifs.tx_complete <= 1'b0;
 
     if(ifs.tx_done)
@@ -100,23 +102,23 @@ end
 uart_tx u_tx
 (
     .clk          ( ifs.clk          ),
-    .baud_tick    ( ifs.baud_tick    ),
+    .baud_tick    ( baud_tick        ),
     .txc          ( ifs.txc          ),
     .tx_data      ( ifs.tx_data      ),
     .tx_wren      ( ifs.tx_wren      ),
     .tx_done      ( ifs.tx_done      ),
     .tx_empty     ( ifs.tx_empty     ),
-    .init_en      ( ifs.init_en      )
+    .init_en      ( init_en          )
 );
 
 uart_rx u_rx
 (
     .clk          ( ifs.clk          ),
-    .baud_tick    ( ifs.baud_tick    ),
+    .baud_tick    ( baud_tick        ),
     .rxc          ( ifs.rxc          ),
     .rx_done      ( ifs.rx_done      ),
     .rx_data      ( ifs.rx_data      ),
-    .init_en      ( ifs.init_en      )
+    .init_en      ( init_en          )
 );
 //=======================================================
 endmodule : uart

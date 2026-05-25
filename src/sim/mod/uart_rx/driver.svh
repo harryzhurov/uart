@@ -9,6 +9,7 @@ class Driver;
     int    num_trn_rx;
     int    percent;
     int    last_percent = -1;
+    int    drop_time;
     data_t reversed_data;
     
     rx_trn_t rx_tr_drv;
@@ -55,52 +56,31 @@ class Driver;
     task automatic send_rx();
 
         #(rx_tr_drv.send_delay*CLK_CYCLE);
-
+        
         wait(vif.baud_pulse);
         vif.rxc = 0;
         
-        fork
-        begin : dropping
+        drop_time = $time + rx_tr_drv.drop_rx_del;
+        
+        for(int i=0; i<WORD; i++) begin
 
-            if(rx_tr_drv.drop_rx) begin
+            #(UART_CYCLE);
+            
+            if(rx_tr_drv.drop_rx && ($time >= drop_time)) begin
 
-                #(rx_tr_drv.drop_rx_del);
-                //$display("DROP, [%t]", $realtime);
-                disable normal_transaction;
                 vif.rxc = 1;
-
-            end
-            else begin
-               #(10000*UART_CYCLE);
-            end
-        end
-        begin : normal_transaction
-
-            for(int i=0; i<WORD; i++) begin
-                #(UART_CYCLE);
-                vif.rxc = rx_tr_drv.data[i];
+                
+                #(UART_CYCLE*10);
+                return;
             end
 
-            #(UART_CYCLE) vif.rxc = rx_tr_drv.stop_bit;
-
-            #(UART_CYCLE) vif.rxc = 1;
-            #(UART_CYCLE);
-
-            for(int i = 0; i < WORD; ++i) begin
-                reversed_data[i] = rx_tr_drv.data[7-i];
-            end
-            
-            vif.rxc = 1;
-            #(UART_CYCLE);
-
-            
-            disable dropping;
-            
+            vif.rxc = rx_tr_drv.data[i];
         end
         
-        join_any
-        
-        disable fork;
+        #(UART_CYCLE) vif.rxc = rx_tr_drv.stop_bit;
+
+        #(UART_CYCLE) vif.rxc = 1;
+        #(UART_CYCLE);
         
     endtask
     

@@ -102,7 +102,7 @@ class Scoreboard;
         end
     endfunction
     
-    function check_rx_data;
+    function void check_rx_data;
         if(!rx_tr_scb.drop_rx) begin
 
             if(rx_tr_scb.data !== rx_reversed_data) begin
@@ -114,7 +114,7 @@ class Scoreboard;
         end
     endfunction
     
-    function check_frame_error;
+    function void check_frame_error;
         if(!rx_tr_scb.drop_rx) begin
             if(rx_tr_scb.stop_bit == mnt_data.frame_error) begin
                 $display("INFO (ERROR) (rx) : frame error, ID = %d",num_trn_rx);

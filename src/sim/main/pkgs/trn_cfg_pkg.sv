@@ -13,7 +13,6 @@ parameter int  total_tests        = num_trn_rx + num_trn_tx;
 //
 parameter int  zero_data_tx       = 10;      // probability of data = 2'h00--------------------------\
 parameter int  send_del_exist_tx  = 20;      // probobility of delay existance before data sending -- > (%)
-parameter int  drop_tx_trn        =  1;      // probability of dropping transaction------------------/
 parameter int  send_del_dist_tx   = 40000;   // in range [0:10000] clk
 
 //===================================================================================

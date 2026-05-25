@@ -65,7 +65,7 @@ end
 //      Instances
 //
 //-----------------------------uart.sv instance--------------------------------------
-uart dut0
+top top_inst
 (
     .ifs ( ifs )
 );

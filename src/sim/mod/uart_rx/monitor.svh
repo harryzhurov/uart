@@ -49,6 +49,8 @@ class Monitor;
                 num_trn_rx++;
                 
                 meas_percent;
+                
+                #UART_CYCLE;
 
             end
             begin

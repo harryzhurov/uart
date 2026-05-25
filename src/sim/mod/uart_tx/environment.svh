@@ -10,41 +10,46 @@ class Environment;
     Scoreboard  scb;
     
     mailbox #(tx_trn_t) gen2drv_tx;
-    mailbox #(tx_trn_t) gen2scb_tx;
-    mailbox #( data_t ) mnt2scb_tx;
+    mailbox #(tx_pak_t) drv2scb_tx;
+    mailbox #(tx_pak_t) mnt2scb_tx;
     
     virtual uart_if vif;
-    
-    semaphore sem_scb2drv;
     
     function new(virtual uart_if vif);
 
         this.vif    = vif;
-        sem_scb2drv = new();
     
         gen2drv_tx  = new();
-        gen2scb_tx  = new();
+        drv2scb_tx  = new();
         mnt2scb_tx  = new();
         
-        gen = new(gen2drv_tx,gen2scb_tx);
-        drv = new(gen2drv_tx,vif,sem_scb2drv);
+        gen = new(gen2drv_tx);
+        drv = new(gen2drv_tx,drv2scb_tx,vif);
         mnt = new(mnt2scb_tx,vif);
-        scb = new(gen2scb_tx,mnt2scb_tx,sem_scb2drv);
+        scb = new(drv2scb_tx,mnt2scb_tx);
         
     endfunction;
     
     task automatic run();
         
+        gen.run();
+
         fork
         
-            gen.run();
             drv.run();
             mnt.run();
-            scb.run();
-            
-        join_any
+
+        join_none
         
         run_wait_end();
+        
+        fork
+
+            scb.run();
+            
+        join_none
+        
+        wait(scb.num_trn_tx == trn_cfg_pkg::num_trn_tx);
         
         if(!scb.err) $display("\033[32mINFO: Test succeed!\033[0m");
         else $display("\033[31mINFO: Test failed! Number of error = %d \033[0m", scb.err);
@@ -57,12 +62,8 @@ class Environment;
     
     task automatic run_wait_end();
     
-        fork
-            
-            wait(scb.num_trn_tx == num_trn_tx);
-            wait(mnt.num_trn_tx == num_trn_tx);
-        
-        join
+        wait(drv.num_trn_tx == num_trn_tx);
+        wait(mnt.num_trn_tx == num_trn_tx);
         
     endtask
 

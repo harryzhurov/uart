@@ -8,11 +8,12 @@ import params_pkg::*;
 module uart_rx (
     input  logic            clk,
     input  logic            baud_tick,
+    input  logic            init_en,
 
     input  logic            rxc,
 
-    output logic            rx_done,
-    output logic [WORD-1:0] rx_buffer
+    output logic [WORD-1:0] rx_data,
+    output logic            rx_done
 );
 //=======================================================
 //
@@ -99,6 +100,11 @@ always_comb start_detected = (rxc_shift[2] && (!rxc_shift[1]));
 //
 always_ff @(posedge clk) begin
 
+    if(init_en) begin
+        rx_data <= 8'h00;
+        rx_done <= 1'b0;
+    end
+
     rx_done <= 1'b0;
 
     case (rx_state)
@@ -155,9 +161,9 @@ always_ff @(posedge clk) begin
 
         if (rx_timer == BIT_PERIOD) begin
 
-            rx_buffer <= rx_shift;
-            rx_done   <= 1'b1;
-            rx_stat   <= RX_STATE_NEXT;
+            rx_data <= rx_shift;
+            rx_done <= 1'b1;
+            rx_stat <= RX_STATE_NEXT;
 
         end
     end

@@ -17,6 +17,13 @@ typedef struct
 } 
 tx_trn_t;
 
+typedef struct
+{
+    logic [WORD-1:0] data;
+    int              id;
+}
+tx_pak_t;
+
 typedef struct 
 { 
     logic [WORD-1:0] data;

@@ -8,10 +8,8 @@ class Tx_transaction;
     int                 id;
                
     rand bit            send_del;
-    rand bit            drop_tx;
     rand int            data_delay;
     rand bit [WORD-1:0] data;
-    rand int            drop_tx_del;
 
     function new();
         
@@ -21,14 +19,9 @@ class Tx_transaction;
 
     constraint data_cnstr
     {
-        data        inside {[0:255          ]};
-        drop_tx_del inside {[0:UART_CYCLE*10]};
+        data        inside {[0:255]};
 
-        data        dist  {0 := (zero_data_tx)       , [1:255] := (100 - zero_data_tx)};
-        drop_tx     dist  {0 := ( 100 - drop_tx_trn ), 1       := ( drop_tx_trn)      };
-
-        (drop_tx==0) -> (drop_tx_del==0);
-        solve drop_tx before drop_tx_del;
+        data         dist  {0 := (zero_data_tx), [1:255] := (100 - zero_data_tx)};
 
     }
 

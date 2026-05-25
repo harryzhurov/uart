@@ -6,12 +6,12 @@ interface uart_if;
     logic            clk;
     logic            baud_tick;
     logic            baud_pulse;
+    logic            init_en;
 
     logic            rxc;
     logic            txc;
 
     logic [WORD-1:0] rx_data;
-    logic [WORD-1:0] rx_buffer;
     logic            rx_rden;
     logic            rx_complete;
     logic            frame_error;
@@ -20,23 +20,25 @@ interface uart_if;
     logic            rx_done;
 
     logic [WORD-1:0] tx_data;
-    logic [WORD-1:0] tx_buffer;
     logic            tx_wren;
     logic            tx_empty;
     logic            tx_complete;
     logic            tx_done;
-    logic            tx_empty_clr;
+    
+    event            rx_rden_en;
+    event            reset_err;
+    event            rx_trn_drop;
 //=======================================================
     modport uart_mp
     (
         input  clk,
         input  baud_tick,
+        output init_en,
 
         input  rxc,
         input  rx_rden,
         input  rst_err,
         input  rx_done,
-        input  rx_buffer,
         output rx_data,
         output rx_complete,
         output frame_error,
@@ -44,9 +46,7 @@ interface uart_if;
         
         input  tx_wren,
         input  tx_done,
-        input  tx_empty_clr,
         output txc,
-        output tx_buffer,
         output tx_data,
         output tx_empty,
         output tx_complete
@@ -71,6 +71,6 @@ interface uart_if;
         input  tx_empty,
         input  tx_complete
     );
- //=======================================================
+ //======================================================
 endinterface
 //=======================================================

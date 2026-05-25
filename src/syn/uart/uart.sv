@@ -23,7 +23,6 @@ module uart
 //
 logic [9:0] baud_cnt = 0;
 logic [1:0] init     = 0;
-logic       init_en  = 0;
 //=======================================================
 //
 //          Process
@@ -33,9 +32,9 @@ logic       init_en  = 0;
 //  Initialization
 //
 always_ff @(posedge ifs.clk) begin
-    init[0] <= 1'b1;
-    init[1] <= init[0];
-    init_en <= init[0] && (!init[1]);
+    init[0]     <= 1'b1;
+    init[1]     <= init[0];
+    ifs.init_en <= init[0] && (!init[1]);
 end
 //-------------------------------------------------------
 //
@@ -57,14 +56,11 @@ always_ff @(posedge ifs.clk) begin
 //-----------------------------------
 //  RX Control part
 //-----------------------------------
-
-    ifs.rx_complete <= 1'b0;
     
-    if(init_en) begin
+    if(ifs.init_en) begin
         ifs.rx_complete <= 1'b0;
         ifs.frame_error <= 1'b0;
         ifs.overrun     <= 1'b0;
-        ifs.rx_data     <= 8'h00;
     end
 
     if(ifs.rst_err) begin
@@ -74,12 +70,11 @@ always_ff @(posedge ifs.clk) begin
 
     if(ifs.rx_done)
         ifs.rx_complete <= 1'b1;
-        ifs.rx_data     <= ifs.rx_buffer;
 
     if(ifs.rx_rden)
         ifs.rx_complete <= 1'b0;
 
-    if (ifs.rx_done & !ifs.rxc)
+    if(ifs.rx_done & !ifs.rxc)
         ifs.frame_error <= 1'b1;
 
     if(ifs.rx_done & ifs.rx_complete)
@@ -91,23 +86,11 @@ always_ff @(posedge ifs.clk) begin
 
     ifs.tx_complete <= 1'b0;
 
-    if(init_en) begin
-        ifs.tx_buffer   <= 8'h00;
+    if(ifs.init_en)
         ifs.tx_complete <= 1'b0;
-        ifs.tx_empty    <= 1'b1;
-    end
-    else begin
-        if(ifs.tx_done)
-            ifs.tx_complete <= 1'b1;
 
-        if (ifs.tx_wren) begin
-            ifs.tx_buffer <= ifs.tx_data;
-            ifs.tx_empty  <= 1'b0;
-        end
-        else if(ifs.tx_empty_clr) begin
-            ifs.tx_empty  <= 1'b1;
-        end
-    end
+    if(ifs.tx_done)
+        ifs.tx_complete <= 1'b1;
     
 end
 //=======================================================
@@ -119,10 +102,11 @@ uart_tx u_tx
     .clk          ( ifs.clk          ),
     .baud_tick    ( ifs.baud_tick    ),
     .txc          ( ifs.txc          ),
-    .tx_empty_clr ( ifs.tx_empty_clr ),
-    .tx_buffer    ( ifs.tx_buffer    ),
+    .tx_data      ( ifs.tx_data      ),
+    .tx_wren      ( ifs.tx_wren      ),
+    .tx_done      ( ifs.tx_done      ),
     .tx_empty     ( ifs.tx_empty     ),
-    .tx_done      ( ifs.tx_done      )
+    .init_en      ( ifs.init_en      )
 );
 
 uart_rx u_rx
@@ -130,8 +114,9 @@ uart_rx u_rx
     .clk          ( ifs.clk          ),
     .baud_tick    ( ifs.baud_tick    ),
     .rxc          ( ifs.rxc          ),
-    .rx_buffer    ( ifs.rx_buffer    ),
-    .rx_done      ( ifs.rx_done      )
+    .rx_done      ( ifs.rx_done      ),
+    .rx_data      ( ifs.rx_data      ),
+    .init_en      ( ifs.init_en      )
 );
 //=======================================================
 endmodule : uart

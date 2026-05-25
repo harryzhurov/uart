@@ -6,12 +6,9 @@ class Generator;
 
     Rx_transaction rx_trn;
 
-    mnt_dels_t rx_mnt_del;
     rx_trn_t   rx_tr_gen ;
 
     mailbox #(rx_trn_t) gen2drv_rx;
-    mailbox #(rx_trn_t) gen2scb_rx;
-    mailbox #(rx_trn_t) gen2mnt_rx;
     
     function new(mailbox #(rx_trn_t) gen2drv_rx);
     

@@ -10,50 +10,56 @@ class Environment;
     Scoreboard  scb;
     
     mailbox #( rx_trn_t ) gen2drv_rx;
-    mailbox #( rx_trn_t ) gen2scb_rx;
+    mailbox #( rx_trn_t ) drv2scb_rx;
     mailbox #(mnt_rcvd_t) mnt2scb_rx;
-    mailbox #( rx_trn_t ) gen2mnt_rx;
     mailbox #( tx_trn_t ) gen2drv_tx;
-    mailbox #( tx_trn_t ) gen2scb_tx;
-    mailbox #(  data_t  ) mnt2scb_tx;
+    mailbox #( tx_pak_t ) drv2scb_tx;
+    mailbox #( tx_pak_t ) mnt2scb_tx;
     
     virtual uart_if vif;
-    
-    semaphore sem_scb2drv;
     
     function new(virtual uart_if vif);
 
         this.vif    = vif;
-        sem_scb2drv = new();
 
         gen2drv_rx  = new();
-        gen2scb_rx  = new();
+        drv2scb_rx  = new();
         mnt2scb_rx  = new();
-        gen2mnt_rx  = new();
         gen2drv_tx  = new();
-        gen2scb_tx  = new();
+        drv2scb_tx  = new();
         mnt2scb_tx  = new();
         
-        gen = new(gen2drv_rx,gen2scb_rx,gen2mnt_rx,gen2drv_tx,gen2scb_tx);
-        drv = new(gen2drv_rx,gen2drv_tx,vif,sem_scb2drv);
-        mnt = new(mnt2scb_rx,gen2mnt_rx,mnt2scb_tx,vif);
-        scb = new(gen2scb_rx,mnt2scb_rx,gen2scb_tx,mnt2scb_tx,sem_scb2drv);
+        gen = new(gen2drv_rx,gen2drv_tx);
+        drv = new(gen2drv_rx,drv2scb_rx,gen2drv_tx,drv2scb_tx,vif);
+        mnt = new(mnt2scb_rx,mnt2scb_tx,vif);
+        scb = new(drv2scb_rx,mnt2scb_rx,drv2scb_tx,mnt2scb_tx);
         
     endfunction;
     
     task automatic run();
         
+        gen.run();
+
         fork
         
-            gen.run();
             drv.run();
             mnt.run();
-            scb.run();
-            
-        join_any
+
+        join_none
         
         run_wait_end();
         
+        fork
+
+            scb.run();
+
+        join_none
+        
+        fork
+            wait(scb.num_trn_rx == trn_cfg_pkg::num_trn_rx);
+            wait(scb.num_trn_tx == trn_cfg_pkg::num_trn_tx);
+        join
+
         if(!scb.err) $display("\033[32mINFO: Test succeed!\033[0m");
         else $display("\033[31mINFO: Test failed! Number of error = %d \033[0m", scb.err);
         
@@ -66,12 +72,22 @@ class Environment;
     task automatic run_wait_end();
     
         fork
-            
-            wait(scb.num_trn_rx == num_trn_rx);
-            wait(mnt.num_trn_rx == num_trn_rx);
-            wait(scb.num_trn_tx == num_trn_tx);
-            wait(mnt.num_trn_tx == num_trn_tx);
-        
+        begin
+            wait(mnt.num_trn_rx == trn_cfg_pkg::num_trn_rx);
+            $display("INFO: Monitor finished RX");
+        end
+        begin
+            wait(drv.num_trn_rx == trn_cfg_pkg::num_trn_rx);
+            $display("INFO: Driver finished RX");
+        end
+        begin
+            wait(mnt.num_trn_tx == trn_cfg_pkg::num_trn_tx);
+            $display("INFO: Monitor finished TX");
+        end
+        begin
+            wait(drv.num_trn_tx == trn_cfg_pkg::num_trn_tx);
+            $display("INFO: Driver finished TX");
+        end
         join
         
     endtask

@@ -7,27 +7,17 @@ class Generator;
     Rx_transaction rx_trn;
     Tx_transaction tx_trn;
 
-    mnt_dels_t rx_mnt_del;
     rx_trn_t   rx_tr_gen ;
     tx_trn_t   tx_tr_gen ;
 
     mailbox #( rx_trn_t ) gen2drv_rx;
     mailbox #( tx_trn_t ) gen2drv_tx;
-    mailbox #( rx_trn_t ) gen2scb_rx;
-    mailbox #( tx_trn_t ) gen2scb_tx;
-    mailbox #( rx_trn_t ) gen2mnt_rx;
     
-    function new(mailbox #( rx_trn_t ) gen2drv_rx,
-                 mailbox #( rx_trn_t ) gen2scb_rx,
-                 mailbox #( rx_trn_t ) gen2mnt_rx,
-                 mailbox #( tx_trn_t ) gen2drv_tx,
-                 mailbox #( tx_trn_t ) gen2scb_tx);
+    function new(mailbox #(rx_trn_t) gen2drv_rx,
+                 mailbox #(tx_trn_t) gen2drv_tx);
     
         this.gen2drv_rx = gen2drv_rx;
-        this.gen2scb_rx = gen2scb_rx;
-        this.gen2mnt_rx = gen2mnt_rx;
         this.gen2drv_tx = gen2drv_tx;
-        this.gen2scb_tx = gen2scb_tx;
         
     endfunction
     
@@ -49,8 +39,6 @@ class Generator;
             rx_tr_gen.id          = rx_trn.id;
             
             gen2drv_rx.put(rx_tr_gen);
-            gen2scb_rx.put(rx_tr_gen);
-            gen2mnt_rx.put(rx_tr_gen);
             
         end
     
@@ -70,8 +58,7 @@ class Generator;
             tx_tr_gen.id         = tx_trn.id;
 
             gen2drv_tx.put(tx_tr_gen);
-            gen2scb_tx.put(tx_tr_gen);
-
+            
         end
 
     endtask

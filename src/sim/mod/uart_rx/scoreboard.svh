@@ -68,7 +68,7 @@ class Scoreboard;
     endfunction
     
     
-    function check_rx_data;
+    function void check_rx_data;
         if(!rx_tr_scb.drop_rx) begin
 
             if(rx_tr_scb.data !== rx_reversed_data) begin
@@ -76,28 +76,22 @@ class Scoreboard;
                 $display("INFO (ERROR) (rx) : bad frame = %d, time = [%t]",num_trn_rx, $realtime);
                 $display("      Sent data = %h, Received = %h",rx_tr_scb.data,rx_reversed_data);
                 err++;
-                return 1;
             end
-            return 0;
         end
-        else
-            return 0;
     endfunction
 
-    function check_frame_error;
+    function void check_frame_error;
         if(rx_tr_scb.stop_bit == mnt_data.frame_error) begin
             $display("INFO (ERROR) (rx) : frame error, frame id = %d",rx_tr_scb.id);
             err++;
-            return 1;
         end
-        return 0;
     endfunction
     
     function void meas_percent;
         percent = (this.num_trn_rx*100) / (trn_cfg_pkg::num_trn_rx);
 
         if (percent != last_percent && (percent % 10 == 0 || percent == 100)) begin
-            $display("INFO: Scoreboard completed %0d%% (%0d/%0d)", percent, this.num_trn_rx, trn_cfg_pkg::num_trn_rx);
+            $display("INFO: Scoreboard completed %0d%%", percent);
             last_percent = percent;
         end
     endfunction

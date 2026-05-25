@@ -4,8 +4,8 @@ package trn_cfg_pkg;
 //
 //      Number of transactions
 //
-parameter int  num_trn_tx         = 1000;
-parameter int  num_trn_rx         = 1000;
+parameter int  num_trn_tx         = 2000;
+parameter int  num_trn_rx         = 2000;
 parameter int  total_tests        = num_trn_rx + num_trn_tx;
 //===================================================================================
 //
@@ -13,7 +13,6 @@ parameter int  total_tests        = num_trn_rx + num_trn_tx;
 //
 parameter int  zero_data_tx       = 10;      // probability of data = 2'h00--------------------------\
 parameter int  send_del_exist_tx  = 20;      // probobility of delay existance before data sending -- > (%)
-parameter int  drop_tx_trn        =  1;      // probability of dropping transaction------------------/
 parameter int  send_del_dist_tx   = 40000;   // in range [0:10000] clk
 
 //===================================================================================

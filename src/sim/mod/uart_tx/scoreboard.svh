@@ -15,11 +15,26 @@ class Scoreboard;
     mailbox #(tx_pak_t) drv2scb_tx;
     mailbox #(tx_pak_t) mnt2scb_tx;
     
+    covergroup tx_data_cg;
+        tx_data : coverpoint tx_mnt_scb.data
+        {
+            bins dat_0   = {    0    };
+            bins dat_63  = {[  1:63 ]};
+            bins dat_127 = {[ 64:127]};
+            bins dat_254 = {[128:254]};
+            bins dat_255 = {   255   };
+        }
+
+        option.per_instance = 1;
+
+    endgroup
+    
     function new(mailbox #(tx_pak_t) drv2scb_tx,
                  mailbox #(tx_pak_t) mnt2scb_tx);
     
         this.drv2scb_tx  = drv2scb_tx ;
         this.mnt2scb_tx  = mnt2scb_tx ;
+        tx_data_cg       = new();
     
     endfunction
     
@@ -27,7 +42,7 @@ class Scoreboard;
         percent = (this.num_trn_tx*100) / (trn_cfg_pkg::num_trn_tx);
 
         if (percent != last_percent && (percent % 10 == 0 || percent == 100)) begin
-            $display("INFO: Scoreboard completed %0d%% (%0d/%0d)", percent, this.num_trn_tx, trn_cfg_pkg::num_trn_tx);
+            $display("INFO: Scoreboard completed %0d%%", percent);
             last_percent = percent;
         end
     endfunction
@@ -47,7 +62,7 @@ class Scoreboard;
             end
             
             num_trn_tx++;
-            
+            tx_data_cg.sample();
             meas_percent;
         
         end
@@ -56,12 +71,8 @@ class Scoreboard;
     
     
     task automatic run();
-        
-        fork
             
-            check_tx();
-        
-        join
+         check_tx();
     
     endtask
 

@@ -29,11 +29,10 @@ interface uart_if;
     event            reset_err;
     event            rx_trn_drop;
 //=======================================================
+    
     modport uart_mp
     (
         input  clk,
-        input  baud_tick,
-        output init_en,
 
         input  rxc,
         input  rx_rden,
@@ -45,32 +44,13 @@ interface uart_if;
         output overrun,
         
         input  tx_wren,
+        input  tx_data,
         input  tx_done,
         output txc,
-        output tx_data,
         output tx_empty,
         output tx_complete
     );
     
-    modport tb_mp
-    (
-        output clk,
-        output baud_pulse,
-        
-        output rxc,
-        output rx_rden,
-        output rst_err,
-        input  rx_data,
-        input  rx_complete,
-        input  frame_error,
-        input  overrun,
-        
-        output tx_wren,
-        input  txc,
-        input  tx_data,
-        input  tx_empty,
-        input  tx_complete
-    );
- //======================================================
+//======================================================
 endinterface
 //=======================================================

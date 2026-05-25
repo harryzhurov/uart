@@ -21,7 +21,7 @@ class Generator;
         repeat (num_trn_tx) begin
         
             tx_trn = new();
-            tx_trn.randomize();
+            void'(tx_trn.randomize());
             
             if(!tx_trn.randomize()) $display("INFO: ERROR: tx_transaction_randomization failed!");
             

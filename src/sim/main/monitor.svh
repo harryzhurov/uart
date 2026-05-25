@@ -96,8 +96,6 @@ class Monitor;
     
     task automatic run();
     
-        @(negedge vif.init_en);
-        
         fork
         
             receive_rx();

@@ -27,7 +27,7 @@ class Monitor;
         percent = (this.num_trn_rx*100) / (trn_cfg_pkg::num_trn_rx);
 
         if (percent != last_percent && (percent % 10 == 0 || percent == 100)) begin
-            $display("INFO: Monitor completed %0d%% (%0d/%0d)", percent, this.num_trn_rx, trn_cfg_pkg::num_trn_rx);
+            $display("INFO: Monitor completed %0d%%", percent);
             last_percent = percent;
         end
     endfunction
@@ -68,7 +68,6 @@ class Monitor;
     
     task automatic run();
     
-        @(negedge vif.init_en);
         
         receive_rx();
 

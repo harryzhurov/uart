@@ -15,26 +15,11 @@ class Monitor;
 
     mailbox #(tx_pak_t) mnt2scb_tx;
     
-    covergroup tx_data_cg @(posedge vif.clk);
-        tx_data : coverpoint tx_data_mnt
-        {
-            bins dat_0   = {    0    };
-            bins dat_63  = {[  1:63 ]};
-            bins dat_127 = {[ 64:127]};
-            bins dat_254 = {[128:254]};
-            bins dat_255 = {   255   };
-        }
-
-        option.per_instance = 1;
-
-    endgroup
-    
     function new(mailbox #(tx_pak_t) mnt2scb_tx ,
                  virtual             uart_if vif);
     
         this.mnt2scb_tx = mnt2scb_tx;
         this.vif        = vif;
-        tx_data_cg      = new();
     
     endfunction
     
@@ -42,7 +27,7 @@ class Monitor;
         percent = (this.num_trn_tx*100) / (trn_cfg_pkg::num_trn_tx);
 
         if (percent != last_percent && (percent % 10 == 0 || percent == 100)) begin
-            $display("INFO: Monitor completed %0d%% (%0d/%0d)", percent, this.num_trn_tx, trn_cfg_pkg::num_trn_tx);
+            $display("INFO: Monitor completed %0d%%", percent);
             last_percent = percent;
         end
     endfunction
@@ -66,15 +51,12 @@ class Monitor;
             
             num_trn_tx++;
 
-            tx_data_cg.sample();
             meas_percent;
     
         end
     endtask
     
     task automatic run();
-
-        @(negedge vif.init_en);
 
         receive_tx();
             

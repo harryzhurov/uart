@@ -25,7 +25,7 @@ end
 
 initial begin
     #($urandom_range(0,UART_CYCLE));
-    vif.tb_mp.baud_pulse = 0;
+    vif.baud_pulse = 0;
     forever begin
         #(UART_CYCLE - CLK_CYCLE) vif.baud_pulse = 1;
         #(CLK_CYCLE)              vif.baud_pulse = 0;
@@ -65,7 +65,7 @@ end
 //      Instances
 //
 //-----------------------------uart.sv instance--------------------------------------
-uart dut0
+top top_inst
 (
     .ifs ( ifs )
 );

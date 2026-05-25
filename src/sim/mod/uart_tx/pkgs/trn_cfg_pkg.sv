@@ -4,14 +4,14 @@ package trn_cfg_pkg;
 //
 //      Number of transactions
 //
-parameter int  num_trn_tx          = 200;
+parameter int  num_trn_tx          = 1000;
 //parameter int  num_trn_rx          = 200;
 //===================================================================================
 //
 //      Tx setting
 //
-parameter int  zero_data_tx        =   3;   // probability of data = 2'h00--------------------------\
-parameter int  send_del_exist_tx   =   0;   // probobility of delay existance before data sending -- > (%)
+parameter int  zero_data_tx        =  10;   // probability of data = 2'h00--------------------------\
+parameter int  send_del_exist_tx   =  10;   // probobility of delay existance before data sending -- > (%)
 parameter int  send_del_dist_tx    = 30000; // in range [0:10000] clk
 
 //===================================================================================

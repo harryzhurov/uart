@@ -4,8 +4,8 @@ package trn_cfg_pkg;
 //
 //      Number of transactions
 //
-parameter int  num_trn_tx         = 1000;
-parameter int  num_trn_rx         = 1000;
+parameter int  num_trn_tx         = 2000;
+parameter int  num_trn_rx         = 2000;
 parameter int  total_tests        = num_trn_rx + num_trn_tx;
 //===================================================================================
 //

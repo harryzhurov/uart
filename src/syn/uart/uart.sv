@@ -7,7 +7,7 @@ import params_pkg::*;
 //=======================================================
 module uart
 (
-    uart_if.uart_mp ifs
+    uart_if ifs
 );
 //=======================================================
 //
@@ -25,6 +25,8 @@ logic [9:0] baud_cnt  = 0;
 logic       baud_tick = 0;
 logic [1:0] init      = 0;
 logic       init_en   = 0;
+logic       rx_done;
+logic       tx_done;
 //=======================================================
 //
 //          Process
@@ -70,16 +72,16 @@ always_ff @(posedge ifs.clk) begin
         ifs.frame_error <= 1'b0;
     end
 
-    if(ifs.rx_done)
+    if(rx_done)
         ifs.rx_complete <= 1'b1;
 
     if(ifs.rx_rden)
         ifs.rx_complete <= 1'b0;
 
-    if(ifs.rx_done & !ifs.rxc)
+    if(rx_done & !ifs.rxc)
         ifs.frame_error <= 1'b1;
 
-    if(ifs.rx_done & ifs.rx_complete)
+    if(rx_done & ifs.rx_complete)
         ifs.overrun <= 1'b1;
 
 //-----------------------------------
@@ -91,7 +93,7 @@ always_ff @(posedge ifs.clk) begin
     if(init_en)
         ifs.tx_complete <= 1'b0;
 
-    if(ifs.tx_done)
+    if(tx_done)
         ifs.tx_complete <= 1'b1;
     
 end
@@ -106,18 +108,17 @@ uart_tx u_tx
     .txc          ( ifs.txc          ),
     .tx_data      ( ifs.tx_data      ),
     .tx_wren      ( ifs.tx_wren      ),
-    .tx_done      ( ifs.tx_done      ),
     .tx_empty     ( ifs.tx_empty     ),
+    .tx_done      ( tx_done          ),
     .init_en      ( init_en          )
 );
 
 uart_rx u_rx
 (
     .clk          ( ifs.clk          ),
-    .baud_tick    ( baud_tick        ),
     .rxc          ( ifs.rxc          ),
-    .rx_done      ( ifs.rx_done      ),
     .rx_data      ( ifs.rx_data      ),
+    .rx_done      ( rx_done          ),
     .init_en      ( init_en          )
 );
 //=======================================================

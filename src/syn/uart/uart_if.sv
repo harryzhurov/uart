@@ -4,9 +4,7 @@ interface uart_if;
     import params_pkg::*;
 //=======================================================
     logic            clk;
-    logic            baud_tick;
     logic            baud_pulse;
-    logic            init_en;
 
     logic            rxc;
     logic            txc;
@@ -27,7 +25,6 @@ interface uart_if;
     
     event            rx_rden_en;
     event            reset_err;
-    event            rx_trn_drop;
 //=======================================================
     
     modport uart_mp

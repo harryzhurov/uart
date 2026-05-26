@@ -15,13 +15,11 @@ interface uart_if;
     logic            frame_error;
     logic            overrun;
     logic            rst_err;
-    logic            rx_done;
 
     logic [WORD-1:0] tx_data;
     logic            tx_wren;
     logic            tx_empty;
     logic            tx_complete;
-    logic            tx_done;
     
     event            rx_rden_en;
     event            reset_err;
@@ -34,7 +32,6 @@ interface uart_if;
         input  rxc,
         input  rx_rden,
         input  rst_err,
-        input  rx_done,
         output rx_data,
         output rx_complete,
         output frame_error,
@@ -42,7 +39,6 @@ interface uart_if;
         
         input  tx_wren,
         input  tx_data,
-        input  tx_done,
         output txc,
         output tx_empty,
         output tx_complete

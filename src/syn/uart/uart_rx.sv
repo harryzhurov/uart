@@ -7,7 +7,6 @@ import params_pkg::*;
 //=======================================================
 module uart_rx (
     input  logic            clk,
-    input  logic            baud_tick,
     input  logic            init_en,
 
     input  logic            rxc,

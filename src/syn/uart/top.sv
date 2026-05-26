@@ -48,6 +48,19 @@ uart_if uif ();
 //
 //    Logic
 //
+assign uif.clk          = clk;
+assign uif.rxc          = rxc;
+assign uif.rst_err      = rst_err;
+assign uif.tx_wren      = tx_wren;
+assign uif.rx_rden      = rx_rden;
+assign uif.tx_data      = tx_data;
+assign txc              = uif.txc;
+assign rx_data          = uif.rx_data;
+assign tx_empty         = uif.tx_empty;
+assign overrun          = uif.overrun;
+assign frame_error      = uif.frame_error;
+assign tx_complete      = uif.tx_complete;
+assign rx_complete      = uif.rx_complete;
 
 //------------------------------------------------------------------------------
 //

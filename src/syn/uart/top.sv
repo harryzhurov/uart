@@ -8,15 +8,27 @@
 
 module automatic top
 (
-    uart_if.uart_mp ifs
+    input        clk,
+
+    input        rxc,
+    input        rx_rden,
+    input        rst_err,
+    output [7:0] rx_data,
+    output       rx_complete,
+    output       frame_error,
+    output       overrun,
+
+    input        tx_wren,
+    input  [7:0] tx_data,
+    output       txc,
+    output       tx_empty,
+    output       tx_complete
 );
-
-
 //------------------------------------------------------------------------------
 //
 //    Settings
 //
-
+uart_if uif ();
 //------------------------------------------------------------------------------
 //
 //    Types

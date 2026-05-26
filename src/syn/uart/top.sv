@@ -68,7 +68,7 @@ assign rx_complete      = uif.rx_complete;
 //
 uart uart_inst
 (
-    .ifs ( ifs )
+    .ifs ( uif.uart_mp )
 );
 //-------------------------------------------------------------------------------
 endmodule : top

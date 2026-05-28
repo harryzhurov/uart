@@ -38,7 +38,7 @@ class Driver;
     
     task automatic run_rx();
 
-        forever begin
+        repeat (trn_cfg_pkg::num_trn_rx) begin
 
             gen2drv_rx.get(rx_tr_drv);
             

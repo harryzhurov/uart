@@ -49,6 +49,10 @@ class Environment;
             
         join_none
         
+        fork
+            wait(scb.num_trn_tx == trn_cfg_pkg::num_trn_tx);
+        join
+        
         wait(scb.num_trn_tx == trn_cfg_pkg::num_trn_tx);
         
         if(!scb.err) $display("\033[32mINFO: Test succeed!\033[0m");
@@ -61,10 +65,14 @@ class Environment;
     endtask
     
     task automatic run_wait_end();
-    
-        wait(drv.num_trn_tx == num_trn_tx);
-        wait(mnt.num_trn_tx == num_trn_tx);
-        
+        begin
+            wait(drv.num_trn_tx == num_trn_tx);
+            $display("INFO: Driver finished TX");
+        end
+        begin
+            wait(mnt.num_trn_tx == num_trn_tx);
+            $display("INFO: Monitor finished TX");
+        end
     endtask
 
 endclass : Environment

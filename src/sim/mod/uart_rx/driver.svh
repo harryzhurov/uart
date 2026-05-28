@@ -38,10 +38,10 @@ class Driver;
     
     task automatic run_rx();
 
-        forever begin
+        repeat (trn_cfg_pkg::num_trn_rx) begin
 
             gen2drv_rx.get(rx_tr_drv);
-            
+
             send_rx();
 
             num_trn_rx++;
@@ -87,7 +87,6 @@ class Driver;
     task automatic rx_rden_send();
 
         forever begin
-
 
             @(vif.rx_rden_en);
 

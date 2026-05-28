@@ -63,9 +63,22 @@ end
 //      Instances
 //
 //-----------------------------uart.sv instance--------------------------------------
-uart dut0
+top top_inst
 (
-    .ifs ( ifs )
+    .clk            ( ifs.clk         ),
+    .rxc            ( ifs.rxc         ),
+    .rx_rden        ( ifs.rx_rden     ),
+    .rst_err        ( ifs.rst_err     ),
+    .rx_data        ( ifs.rx_data     ),
+    .rx_complete    ( ifs.rx_complete ),
+    .frame_error    ( ifs.frame_error ),
+    .overrun        ( ifs.overrun     ),
+    .tx_wren        ( ifs.tx_wren     ),
+    .tx_data        ( ifs.tx_data     ),
+    .txc            ( ifs.txc         ),
+    .tx_empty       ( ifs.tx_empty    ),
+    .tx_complete    ( ifs.tx_complete )
+
 );
 //===================================================================================
 endmodule : uart_tb

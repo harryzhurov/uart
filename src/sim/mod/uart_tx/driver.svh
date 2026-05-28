@@ -70,9 +70,7 @@ class Driver;
     
     task automatic run();
 
-        
         run_tx();
-
     
     endtask
 

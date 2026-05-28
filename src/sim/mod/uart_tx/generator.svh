@@ -10,7 +10,7 @@ class Generator;
 
     mailbox #(tx_trn_t) gen2drv_tx;
     
-    function new(mailbox #( tx_trn_t  ) gen2drv_tx);
+    function new(mailbox #(tx_trn_t) gen2drv_tx);
     
         this.gen2drv_tx = gen2drv_tx;
         

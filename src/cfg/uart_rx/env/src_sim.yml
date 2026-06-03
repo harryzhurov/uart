@@ -1,7 +1,3 @@
-
+usedin : sim
 sources:
-    - src/sim/mod/uart_rx/pkgs/trn_cfg_pkg.sv
-    - src/sim/mod/uart_rx/pkgs/trn_structs_pkg.sv
-    - src/sim/mod/uart_rx/pkgs/tb_components_pkg.sv
-    - src/sim/mod/uart_rx/top_tb.sv
-
+    - src/sim/uvm/top_tb.sv

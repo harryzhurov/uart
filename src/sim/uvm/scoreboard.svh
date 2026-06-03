@@ -29,7 +29,7 @@ class Scoreboard extends uvm_component;
     uvm_analysis_imp_stim #(UartTrn, Scoreboard) stim_port;
     uvm_analysis_imp_resp #(Resp,    Scoreboard) resp_port;
 
-    Resp stim_q[$];                                                       .
+    Resp stim_q[$];                                                       
     Resp resp_q[$];
 
     int  stim_pkt_count;

@@ -15,13 +15,13 @@
 `include "uvm_macros.svh"
 `include "common.svh"
 
-import uvm_pkg      ::*;
+import uvm_pkg::*;
 
 //-------------------------------------------------------------------------------
 class UartTrn extends uvm_sequence_item;
 
     static uint16_t       count = 0;
-    uint32_t              id;
+    uint16_t              id;
 
     rand   bit            stop_bit;
     rand   bit            wrong_rden;
@@ -29,8 +29,8 @@ class UartTrn extends uvm_sequence_item;
     rand   bit            drop_rx;
     rand   uint16_t       send_delay;
     rand   uint16_t       rden_delay;
-    rand   uint8_t        data;
     rand   uint16_t       drop_rx_del;
+    rand   uint8_t        data;
 
     function new();
 

@@ -7,3 +7,4 @@ sources:
     - src/syn/uart/top.sv
     - src/syn/uart/uart.sv
     - src/syn/uart/uart_rx.sv
+    - src/syn/uart/uart_tx.sv

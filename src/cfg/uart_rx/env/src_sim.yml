@@ -1,3 +1,5 @@
-usedin : sim
 sources:
+    - src/sim/uvm/common.svh
+    - src/sim/uvm/simutils.svh
+    - src/sim/uvm/uart_params_pkg.svh
     - src/sim/uvm/top_tb.sv

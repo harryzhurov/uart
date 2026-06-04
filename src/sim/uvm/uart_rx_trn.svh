@@ -16,6 +16,7 @@
 `include "common.svh"
 
 import uvm_pkg::*;
+import uart_params_pkg::*;
 
 //-------------------------------------------------------------------------------
 class UartTrn extends uvm_sequence_item;
@@ -77,9 +78,9 @@ class UartRxSeq extends uvm_sequence #(UartTrn);
 
     UartTrn uart_trn;
 
-    int seq_len = 2000;
+    int seq_len = 600;
 
-    function new(string name = "udp rx seq");
+    function new(string name = "uart rx seq");
         super.new(name);
     endfunction
 
@@ -87,9 +88,9 @@ class UartRxSeq extends uvm_sequence #(UartTrn);
         int count = 0;
         repeat(seq_len) begin
 
-            uart_len = new;
+            uart_trn = new();
 
-            `SV_RAND_CHECK( uart_trn.randomize() );
+            `SV_RAND_CHECK(uart_trn.randomize());
 
             `uvm_send(uart_trn)
 

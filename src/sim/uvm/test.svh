@@ -25,6 +25,9 @@ class UartRxTest extends uvm_test;
 
     `uvm_component_utils(UartRxTest)
 
+    uvm_event rx_trn_done;
+    uvm_event error_flags;
+
     Scoreboard               scbd;
     uvm_sequencer #(UartTrn) seqr;
     Driver                   drv;
@@ -39,6 +42,12 @@ class UartRxTest extends uvm_test;
         seqr  = uvm_sequencer #(UartTrn)::type_id::create("seqr", this);
         drv   = Driver::type_id::create("drv", this);
         mon   = Monitor::type_id::create("mon", this);
+        rx_trn_done = new("rx_trn_done");
+        error_flags = new("error_flags");
+        uvm_config_db #(uvm_event)::set(this, "mon", "rx_done", rx_trn_done);
+        uvm_config_db #(uvm_event)::set(this, "drv", "rx_done", rx_trn_done);
+        uvm_config_db #(uvm_event)::set(this, "mon", "er_flag", error_flags);
+        uvm_config_db #(uvm_event)::set(this, "drv", "er_flag", error_flags);
     endfunction
 
     function void connect_phase(uvm_phase phase);

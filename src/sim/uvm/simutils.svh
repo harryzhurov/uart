@@ -11,7 +11,7 @@
 `ifndef SIM_UTILS_SVH
 `define SIM_UTILS_SVH
 
-`ifdef SIMULATOR
+//`ifdef SIMULATOR
 
 `include "common.svh"
 
@@ -110,6 +110,6 @@ function void hexdump(logic [7:0] pool[], uint16_t len = 64);
 
 endfunction
 //--------------------------------------------------------------------------
-`endif //  SIMULATOR
+//`endif //  SIMULATOR
 `endif // SIM_UTILS_SVH
 

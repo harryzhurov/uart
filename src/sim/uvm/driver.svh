@@ -14,19 +14,24 @@
 
 `include "uvm_macros.svh"
 
-import uvm_pkg   ::*;
-import params_pkg::*;
+import uvm_pkg::*;
 
 //-------------------------------------------------------------------------------
 class Driver extends uvm_driver #(UartTrn);
 
     `uvm_component_utils(Driver)
 
+    uint16_t time_out;
+    uint16_t id = 0;
+
     virtual inp_if inp;
+    virtual out_if out;
     UartTrn trn;
-    Resp    out_trn;
 
     uvm_analysis_port #(Resp) trn_port;
+
+    uvm_event rx_trn_done;
+    uvm_event error_flags;
 
     function new(string name, uvm_component parent);
         super.new(name, parent);
@@ -38,26 +43,39 @@ class Driver extends uvm_driver #(UartTrn);
         if( !uvm_config_db #(virtual inp_if)::get(this, "", "inp", inp) ) begin
             `uvm_error("", "get DUT input interface form config_db failed");
         end
-
+        if( !uvm_config_db #(uvm_event)::get(this, "", "rx_done", rx_trn_done) ) begin
+            `uvm_error("", "get rx_done event form config_db failed");
+        end
+        if( !uvm_config_db #(uvm_event)::get(this, "", "er_flag", error_flags) ) begin
+            `uvm_error("", "get er_flag event form config_db failed");
+        end
     endfunction
 
 
     task main_phase(uvm_phase phase);
 
+        phase.raise_objection(this);
+
         fork
             //--------------------------------------------------------
-            begin : send_data
+            // send_data
+            //
+            begin
+
+                inp.rxc = 1;
 
                 forever begin
 
-                    seq_item_port.get_next_item(trn);
+                    int drop_time = 0;
 
-                    int drop_time;
+                    Resp out_trn = new();
+
+                    seq_item_port.get_next_item(trn);
 
                     #(trn.send_delay*CLK_CYCLE);
 
                     wait(inp.baud_pulse);
-                    ip.rxc = 0;
+                    inp.rxc = 0;
 
                     drop_time = $time + trn.drop_rx_del;
 
@@ -82,19 +100,29 @@ class Driver extends uvm_driver #(UartTrn);
 
                     out_trn.data        =  trn.data;
                     out_trn.frame_error = !trn.stop_bit;
-                    out_trn.overrun     = (inp.rx_complete) ? 1 : 0;
-                    out_trn.drop        =  trn.drop_rx;
+                    //out_trn.overrun    = ???
+                    out_trn.drop_trn    =  trn.drop_rx;
+                    out_trn.num         =  id;
                     trn_port.write(out_trn);
+
+                    time_out = 100;
+
+                    ++id;
 
                     #(UART_CYCLE);
 
+                    seq_item_port.item_done();
+
                 end
+            end
             //--------------------------------------------------------
-            begin : send_rden
+            // send_rden
+            //
+            begin
 
                 forever begin
 
-                    @(trn.rx_rden_en);
+                    rx_trn_done.wait_trigger();
 
                     #(trn.rden_delay*CLK_CYCLE);
 
@@ -104,18 +132,21 @@ class Driver extends uvm_driver #(UartTrn);
                 end
             end
             //--------------------------------------------------------
-            begin : reset_errors
+            // reset_errors
+            //
+            begin
 
                 forever begin
 
-                    @(inp.reset_err);
+                    error_flags.wait_trigger();
+
                     @(posedge inp.clk) inp.rst_err = 1;
                     @(posedge inp.clk) inp.rst_err = 0;
 
                 end
             end
             //--------------------------------------------------------
-            begin : stop_dirver
+            begin : stop_driver
 
                 forever begin
 

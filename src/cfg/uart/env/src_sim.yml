@@ -1,7 +1,6 @@
 
 sources:
-    - src/sim/main/pkgs/trn_cfg_pkg.sv
-    - src/sim/main/pkgs/trn_structs_pkg.sv
-    - src/sim/main/pkgs/tb_components_pkg.sv
+    - src/sim/main/common.svh
+    - src/sim/main/simutils.svh
+    - src/sim/main/uart_params_pkg.svh
     - src/sim/main/top_tb.sv
-

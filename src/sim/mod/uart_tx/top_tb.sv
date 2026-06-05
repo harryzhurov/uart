@@ -1,84 +1,96 @@
-`timescale 1ns / 1ps
-//===================================================================================
-import params_pkg::*;
-import tb_components_pkg::*;
-//===================================================================================
-module uart_tb;
-//===================================================================================
-uart_if ifs();
-//===================================================================================
+//-------------------------------------------------------------------------------
 //
-//      Test body
+//     Project: UART
 //
-//--------------------------------------------
-// Virtual interface
-virtual uart_if vif = ifs;
-//--------------------------------------------
-// Generator 100 MHz
+//     Purpose: UDP Tx Testbench
+//
+//     Author : Matthew S. Grebnev, 2026
+//
+//-------------------------------------------------------------------------------
+
+`define SIMULATOR
+
+`include "uvm_macros.svh"
+`include "test.svh"
+//-------------------------------------------------------------------------------
+
+interface out_if;
+
+logic   clk;
+logic   txc;
+logic   tx_empty;
+logic   tx_complete;
+
+endinterface
+
+interface inp_if;
+
+logic   clk;
+logic   tx_wren;
+uint8_t tx_data;
+logic   baud_pulse;
+
+endinterface
+
+//-------------------------------------------------------------------------------
+
+module automatic top_tb;
+
+import uvm_pkg::*;
+
+//-------------------------------------------------------------------------------
+
+logic  clk = 0;
+logic  baud_pulse = 0;
+inp_if inp();
+out_if out();
+
+//-------------------------------------------------------------------------------
 
 initial begin
-    vif.clk = 0;
-    forever #(CLK_CYCLE/2) vif.clk = ~vif.clk;
+    fork
+        begin
+            forever #(CLK_CYCLE/2) clk = ~clk;
+        end
+        begin
+            #($urandom_range(0,UART_CYCLE));
+            forever begin
+                #(UART_CYCLE - CLK_CYCLE) baud_pulse = 1;
+                #(CLK_CYCLE)              baud_pulse = 0;
+            end
+        end
+    join
 end
-//--------------------------------------------
-// Baud pulse generator
+
+assign inp.clk        = clk;
+assign out.clk        = clk;
+assign inp.baud_pulse = baud_pulse;
 
 initial begin
-    #($urandom_range(0,UART_CYCLE));
-    vif.baud_pulse = 0;
-    forever begin
-        #(UART_CYCLE - CLK_CYCLE) vif.baud_pulse = 1;
-        #(CLK_CYCLE)              vif.baud_pulse = 0;
-    end
-end
-//--------------------------------------------
-// Initialization
+    uvm_config_db #(virtual inp_if )::set(null, "*", "inp", inp);
+    uvm_config_db #(virtual out_if )::set(null, "*", "out", out);
 
-task automatic init();
-    
-    vif.tx_data = 8'h00;
-    vif.tx_wren = 0;
-    
-    #UART_CYCLE;
-    
-endtask
-//--------------------------------------------
-// Test
-
-Environment env;
-
-initial begin
-
-    env = new(vif);
-    
-    init();
-    
-    env.run();
-
+    run_test("UartTxTest");
 end
 
-//===================================================================================
-//
-//      Instances
-//
-//-----------------------------uart.sv instance--------------------------------------
+//-------------------------------------------------------------------------------
 top top_inst
 (
-    .clk            ( ifs.clk         ),
-    .rxc            ( ifs.rxc         ),
-    .rx_rden        ( ifs.rx_rden     ),
-    .rst_err        ( ifs.rst_err     ),
-    .rx_data        ( ifs.rx_data     ),
-    .rx_complete    ( ifs.rx_complete ),
-    .frame_error    ( ifs.frame_error ),
-    .overrun        ( ifs.overrun     ),
-    .tx_wren        ( ifs.tx_wren     ),
-    .tx_data        ( ifs.tx_data     ),
-    .txc            ( ifs.txc         ),
-    .tx_empty       ( ifs.tx_empty    ),
-    .tx_complete    ( ifs.tx_complete )
-
+.clk            ( inp.clk         ),
+.rxc            (                 ),
+.rx_rden        (                 ),
+.rst_err        (                 ),
+.rx_data        (                 ),
+.rx_complete    (                 ),
+.frame_error    (                 ),
+.overrun        (                 ),
+.baud_pulse     ( inp.baud_pulse  ),
+.txc            ( out.txc         ),
+.tx_empty       ( out.tx_empty    ),
+.tx_data        ( inp.tx_data     ),
+.tx_complete    ( out.tx_complete ),
+.tx_wren        ( inp.tx_wren     )
 );
-//===================================================================================
-endmodule : uart_tb
-//===================================================================================
+//==================================================
+endmodule : top_tb
+//==================================================

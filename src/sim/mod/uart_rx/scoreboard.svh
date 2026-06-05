@@ -1,131 +1,134 @@
-//===================================================================================
+//-------------------------------------------------------------------------------
 //
-//      Class Scoreboard
+//     Project: UART Rx
 //
-class Scoreboard;
+//     Purpose: Scoreboard
+//
+//     Author : Matthew S. Grebnev, 2026
+//
+//-------------------------------------------------------------------------------
 
-    int    err              =  0;
-    int    num_trn_rx       =  0;
-    int    percent          =  0;
-    int    last_percent     = -1;
-    data_t rx_reversed_data;
-    
-    rx_trn_t   rx_tr_scb;
-    mnt_rcvd_t mnt_data;
-    
-    mailbox #( rx_trn_t ) drv2scb_rx;
-    mailbox #(mnt_rcvd_t) mnt2scb_rx;
+`ifndef UART_RX_SCOREBOARD_SVH
+`define UART_RX_SCOREBOARD_SVH
+//-------------------------------------------------------------------------------
 
-    covergroup rx_data_cg;
-        rx_data : coverpoint mnt_data.data
-        {
-            bins dat_0   = {    0    };
-            bins dat_63  = {[  1:63 ]};
-            bins dat_127 = {[ 64:127]};
-            bins dat_254 = {[128:254]};
-            bins dat_255 = {   255   };
-        }
-        rx_err_fr : coverpoint mnt_data.frame_error
-        {
-            bins err_0 = {0};
-            bins err_1 = {1};
-        }
-        rx_err_ov : coverpoint mnt_data.overrun
-        {
-            bins err_0 = {0};
-            bins err_1 = {1};
-        }
+`include "uvm_macros.svh"
+`include "uart_rx_trn.svh"
+`include "monitor.svh"
+`include "simutils.svh"
 
-    endgroup
+import uvm_pkg::*;
 
-    covergroup rx_del_cg;
-        rx_rden_delay : coverpoint rx_tr_scb.rden_delay
-        {
-            bins del_0  = {      0      };
-            bins del_10 = {[    1:10000]};
-            bins del_20 = {[10001:20000]};
-            bins del_30 = {[20000:30000]};
-        }
-        
-        rx_send_delay : coverpoint rx_tr_scb.send_delay
-        {
-            bins del_0  = {      0      };
-            bins del_10 = {[    1:10000]};
-            bins del_20 = {[10001:20000]};
-            bins del_30 = {[20000:30000]};
-        }
+class Scoreboard extends uvm_component;
 
-    endgroup
-    
-    function new(mailbox #( rx_trn_t ) drv2scb_rx,
-                 mailbox #(mnt_rcvd_t) mnt2scb_rx);
-    
-        this.drv2scb_rx  = drv2scb_rx;
-        this.mnt2scb_rx  = mnt2scb_rx;
-        rx_data_cg       = new();
-        rx_del_cg        = new();
-    
+    `uvm_component_utils(Scoreboard)
+
+    `uvm_analysis_imp_decl(_stim)
+    `uvm_analysis_imp_decl(_resp)
+
+    uvm_analysis_imp_stim #(Resp,Scoreboard) stim_port;
+    uvm_analysis_imp_resp #(Resp,Scoreboard) resp_port;
+
+    Resp stim_q[$];
+    Resp resp_q[$];
+
+    uint8_t  reverse_data;
+    uint32_t stim_pkt_count;
+    const uint16_t TIMEOUT = 100;
+    uint16_t time_out = TIMEOUT;
+
+    //----------------------------------------------------------------
+    function new(string name, uvm_component parent);
+        super.new(name, parent);
+
+        stim_port = new("stim_port", this);
+        resp_port = new("resp_port", this);
+
+        stim_pkt_count = 0;
     endfunction
-    
-    
-    function void check_rx_data;
-        if(!rx_tr_scb.drop_rx) begin
+    //---------------------------------s-------------------------------
+    function void write_stim(Resp stim);
+        time_out = TIMEOUT;
+        ++stim_pkt_count;
 
-            if(rx_tr_scb.data !== rx_reversed_data) begin
-
-                $display("INFO (ERROR) (rx) : bad frame = %d, time = [%t]",num_trn_rx, $realtime);
-                $display("      Sent data = %h, Received = %h",rx_tr_scb.data,rx_reversed_data);
-                err++;
-            end
+        for(int i=0; i<WORD; i++) begin
+            reverse_data[i] = stim.data[WORD-1-i];
         end
-    endfunction
 
-    function void check_frame_error;
-        if(rx_tr_scb.stop_bit == mnt_data.frame_error) begin
-            $display("INFO (ERROR) (rx) : frame error, frame id = %d",rx_tr_scb.id);
-            err++;
-        end
-    endfunction
-    
-    function void meas_percent;
-        percent = (this.num_trn_rx*100) / (trn_cfg_pkg::num_trn_rx);
+        stim.data = reverse_data;
 
-        if (percent != last_percent && (percent % 10 == 0 || percent == 100)) begin
-            $display("INFO: Scoreboard completed %0d%%", percent);
-            last_percent = percent;
-        end
+        stim_q.push_back(stim);
     endfunction
-
-    task automatic check_rx();
+    //----------------------------------------------------------------
+    function void write_resp(Resp resp);
+        resp_q.push_back(resp);
+    endfunction
+    //----------------------------------------------------------------
+    task main_phase(uvm_phase phase);
 
         forever begin
-
-            drv2scb_rx.get(rx_tr_scb);
-            mnt2scb_rx.get(mnt_data );
-
-            for(int i=0; i<WORD; i++) begin
-                rx_reversed_data[i] = mnt_data.data[WORD-1-i];
+            #UART_CYCLE;
+            if(--time_out == 0) begin
+                $display("\n[%t], Scoreboard Responce Port timeout expired\n", $realtime);
+                break;
             end
-            
-            check_rx_data;
-            check_frame_error;
-            
-            num_trn_rx++;
-            
-            meas_percent;
-            
-            rx_data_cg.sample();
-            rx_del_cg.sample();
-            
+        end
+    endtask
+    //----------------------------------------------------------------
+    function void check_phase(uvm_phase phase);
+
+        string err_msg = "";
+
+        $display("[%t], stim_q.size: %0h", $realtime, stim_q.size());
+        $display("[%t], resp_q.size: %0h", $realtime, resp_q.size());
+
+        if(!stim_q.size()) begin
+            err_msg = $sformatf("ERROR: no valid stimulus");
+        end
+        else if(stim_q.size() != resp_q.size()) begin
+            err_msg = $sformatf("ERROR: stimulus item count [%0d] not equeal responce item count [%0d]",
+                               stim_q.size(),
+                               resp_q.size());
+        end
+        else begin
+            while(stim_q.size()) begin
+
+                Resp stim = stim_q.pop_front();
+                Resp resp = resp_q.pop_front();
+
+                //$display("[%t], stim: %p", $realtime, stim);
+                //$display("[%t], resp: %p", $realtime, resp);
+
+                if(!stim.drop_trn) begin
+                    err_msg = stim.compare(resp);
+                    if(err_msg) begin
+                        break;
+                    end
+                end
+            end
         end
 
-    endtask
-    
-    task run();
+        if(err_msg) begin
+            log_print(err_msg, colorRED);
+            //log_print(err_msg, colorRED);
 
-        check_rx();
-    
-    endtask
+            $display("\n");
+            log_print("****** TEST FAILED ******", colorRED);
+            //log_print("****** TEST FAILED ******", colorRED);
+            $display("\n");
+            raise_sim_fatal_error();
+        end
 
-endclass : Scoreboard
-//===================================================================================
+        $display("\n");
+        log_print("****** TEST PASSED ******",colorGREEN);
+        //log_print("****** TEST PASSED ******", colorGREEN);
+        $display("\n");
+
+    endfunction
+    //----------------------------------------------------------------
+
+endclass
+//-------------------------------------------------------------------------------
+`endif // UART_RX_SCOREBOARD_SVH
+
+

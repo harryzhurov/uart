@@ -78,7 +78,7 @@ class UartRxSeq extends uvm_sequence #(UartTrn);
 
     UartTrn uart_trn;
 
-    int seq_len = 600;
+    int seq_len = 2000;
 
     function new(string name = "uart rx seq");
         super.new(name);

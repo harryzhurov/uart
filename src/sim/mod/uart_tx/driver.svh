@@ -1,78 +1,103 @@
-//===================================================================================
+//-------------------------------------------------------------------------------
 //
-//      Class Driver
+//     Project: UART TX
 //
-class Driver;
+//     Purpose: Driver
+//
+//     Author : Matthew S. Grebnev, 2026
+//
+//-------------------------------------------------------------------------------
 
-    virtual uart_if vif;
+`ifndef UART_TX_DRIVER_SVH
+`define UART_TX_DRIVER_SVH
+//-------------------------------------------------------------------------------
 
-    int num_trn_tx   =  0;
-    int percent      =  0;
-    int last_percent = -1;
-    int id;
-    
-    tx_trn_t tx_tr_drv;
-    tx_pak_t tx_pak_drv;
+`include "uvm_macros.svh"
 
-    mailbox #(tx_trn_t) gen2drv_tx;
-    mailbox #(tx_pak_t) drv2scb_tx;
-    
-    function new(mailbox #(tx_trn_t) gen2drv_tx ,
-                 mailbox #(tx_pak_t) drv2scb_tx ,
-                 virtual             uart_if vif);
-    
-        this.gen2drv_tx  = gen2drv_tx;
-        this.drv2scb_tx  = drv2scb_tx;
-        this.vif         = vif;
-    
+import uvm_pkg::*;
+
+//-------------------------------------------------------------------------------
+class Driver extends uvm_driver #(UartTrn);
+
+    `uvm_component_utils(Driver)
+
+    uint16_t time_out;
+    uint16_t id = 0;
+
+    virtual inp_if inp;
+
+    UartTrn trn;
+
+    uvm_analysis_port #(Resp) trn_port;
+
+    function new(string name, uvm_component parent);
+        super.new(name, parent);
+
+        trn_port = new("trn_port", this);
     endfunction
-    
-    function void meas_percent;
-        percent = (this.num_trn_tx*100) / (trn_cfg_pkg::num_trn_tx);
 
-        if (percent != last_percent && (percent % 10 == 0 || percent == 100)) begin
-            $display("INFO: Driver completed %0d%%", percent);
-            last_percent = percent;
+    function void build_phase(uvm_phase phase);
+        if( !uvm_config_db #(virtual inp_if)::get(this, "", "inp", inp) ) begin
+            `uvm_error("", "get DUT input interface form config_db failed");
         end
     endfunction
-    
-    task automatic run_tx();
-    
-        repeat (trn_cfg_pkg::num_trn_tx) begin
-        
-            gen2drv_tx.get(tx_tr_drv);
-            
-            #(tx_tr_drv.data_delay*CLK_CYCLE);
-    
-             if(vif.tx_empty)
-                vif.tx_data = tx_tr_drv.data;
-             else begin
-                wait(vif.tx_empty);
-                vif.tx_data = tx_tr_drv.data;
-             end
-    
-            @(posedge vif.clk) vif.tx_wren = 1;
-            @(posedge vif.clk) vif.tx_wren = 0;
-            
-            tx_pak_drv.data = tx_tr_drv.data;
-            tx_pak_drv.id   = num_trn_tx;
-            drv2scb_tx.put(tx_pak_drv);
 
-            #20ns;
-            
-            num_trn_tx++;
-            
-            meas_percent;
-        
-        end
-    
+
+    task main_phase(uvm_phase phase);
+
+        fork
+            //--------------------------------------------------------
+            // send_data
+            //
+            begin
+
+                forever begin
+
+                    Resp out_trn = new();
+
+                    seq_item_port.get_next_item(trn);
+
+                    #(trn.data_delay*CLK_CYCLE);
+
+                    inp.tx_data = trn.data;
+
+                    @(posedge inp.clk) inp.tx_wren = 1;
+                    @(posedge inp.clk) inp.tx_wren = 0;
+
+                    out_trn.data = trn.data;
+                    out_trn.num  = id;
+
+                    #20ns;
+
+                    out_trn.data =  trn.data;
+                    out_trn.num  =  id;
+                    trn_port.write(out_trn);
+
+                    time_out = 100;
+
+                    ++id;
+
+                    seq_item_port.item_done();
+
+                end
+            end
+            //--------------------------------------------------------
+            begin : stop_driver
+
+                forever begin
+
+                    #UART_CYCLE;
+                    if(--time_out == 0) begin
+                        break;
+                    end
+                end
+            end
+            //--------------------------------------------------------
+        join_any
+
     endtask
-    
-    task automatic run();
+endclass
+//-------------------------------------------------------------------------------
+`endif // UART_TX_DRIVER_SVH
 
-        run_tx();
-    
-    endtask
 
-endclass : Driver
-//===================================================================================

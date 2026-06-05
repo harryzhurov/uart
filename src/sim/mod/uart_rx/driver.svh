@@ -1,123 +1,171 @@
-//===================================================================================
+//-------------------------------------------------------------------------------
 //
-//      Class Driver
+//     Project: UART RX
 //
-class Driver;
+//     Purpose: Driver
+//
+//     Author : Matthew S. Grebnev, 2026
+//
+//-------------------------------------------------------------------------------
 
-    virtual uart_if vif;
+`ifndef UART_RX_DRIVER_SVH
+`define UART_RX_DRIVER_SVH
+//-------------------------------------------------------------------------------
 
-    int    num_trn_rx;
-    int    percent;
-    int    last_percent = -1;
-    int    drop_time;
-    data_t reversed_data;
-    
-    rx_trn_t rx_tr_drv;
+`include "uvm_macros.svh"
 
-    mailbox #(rx_trn_t) gen2drv_rx;
-    mailbox #(rx_trn_t) drv2scb_rx;
-    
-    function new(mailbox #(rx_trn_t) gen2drv_rx ,
-                 mailbox #(rx_trn_t) drv2scb_rx ,
-                 virtual             uart_if vif);
-    
-        this.gen2drv_rx  = gen2drv_rx;
-        this.drv2scb_rx  = drv2scb_rx;
-        this.vif         = vif;
-    
+import uvm_pkg::*;
+
+//-------------------------------------------------------------------------------
+class Driver extends uvm_driver #(UartTrn);
+
+    `uvm_component_utils(Driver)
+
+    uint16_t time_out;
+    uint16_t id = 0;
+
+    virtual inp_if inp;
+    virtual out_if out;
+    UartTrn trn;
+
+    uvm_analysis_port #(Resp) trn_port;
+
+    uvm_event rx_trn_done;
+    uvm_event error_flags;
+
+    function new(string name, uvm_component parent);
+        super.new(name, parent);
+
+        trn_port = new("trn_port", this);
     endfunction
-    
-    function void meas_percent;
-        percent = (this.num_trn_rx*100) / (trn_cfg_pkg::num_trn_rx);
 
-        if (percent != last_percent && (percent % 10 == 0 || percent == 100)) begin
-            $display("INFO: Driver completed %0d%%", percent);
-            last_percent = percent;
+    function void build_phase(uvm_phase phase);
+        if( !uvm_config_db #(virtual inp_if)::get(this, "", "inp", inp) ) begin
+            `uvm_error("", "get DUT input interface form config_db failed");
+        end
+        if( !uvm_config_db #(uvm_event)::get(this, "", "rx_done", rx_trn_done) ) begin
+            `uvm_error("", "get rx_done event form config_db failed");
+        end
+        if( !uvm_config_db #(uvm_event)::get(this, "", "er_flag", error_flags) ) begin
+            `uvm_error("", "get er_flag event form config_db failed");
         end
     endfunction
-    
-    task automatic run_rx();
 
-        repeat (trn_cfg_pkg::num_trn_rx) begin
 
-            gen2drv_rx.get(rx_tr_drv);
+    task main_phase(uvm_phase phase);
 
-            send_rx();
+        phase.raise_objection(this);
 
-            num_trn_rx++;
-            
-            meas_percent;
-            
-            drv2scb_rx.put(rx_tr_drv);
-
-        end
-    endtask
-
-    task automatic send_rx();
-
-        #(rx_tr_drv.send_delay*CLK_CYCLE);
-        
-        wait(vif.baud_pulse);
-        vif.rxc = 0;
-        
-        drop_time = $time + rx_tr_drv.drop_rx_del;
-        
-        for(int i=0; i<WORD; i++) begin
-
-            #(UART_CYCLE);
-            
-            if(rx_tr_drv.drop_rx && ($time >= drop_time)) begin
-
-                vif.rxc = 1;
-                
-                #(UART_CYCLE*10);
-                return;
-            end
-
-            vif.rxc = rx_tr_drv.data[i];
-        end
-        
-        #(UART_CYCLE) vif.rxc = rx_tr_drv.stop_bit;
-
-        #(UART_CYCLE) vif.rxc = 1;
-        #(UART_CYCLE);
-        
-    endtask
-    
-    task automatic rx_rden_send();
-
-        forever begin
-
-            @(vif.rx_rden_en);
-
-            #(rx_tr_drv.rden_delay*CLK_CYCLE);
-
-            @(posedge vif.clk) vif.rx_rden = 1;
-            @(posedge vif.clk) vif.rx_rden = 0;
-            
-        end
-
-    endtask
-
-    task automatic reset_error();
-        forever begin
-            @(vif.reset_err);
-            @(posedge vif.clk) vif.rst_err = 1;
-            @(posedge vif.clk) vif.rst_err = 0;
-        end
-    endtask
-    
-    task automatic run();
-    
         fork
-        
-            run_rx();
-            rx_rden_send();
-            reset_error();
-        
-        join
-    
-    endtask
+            //--------------------------------------------------------
+            // send_data
+            //
+            begin
 
-endclass : Driver
-//===================================================================================
+                inp.rxc = 1;
+
+                forever begin
+
+                    int drop_time = 0;
+
+                    Resp out_trn = new();
+
+                    seq_item_port.get_next_item(trn);
+
+                    #(trn.send_delay*CLK_CYCLE);
+
+                    wait(inp.baud_pulse);
+                    inp.rxc = 0;
+
+                    drop_time = $time + trn.drop_rx_del;
+
+                    for(int i=0; i<WORD; i++) begin
+
+                        #(UART_CYCLE);
+
+                        if(trn.drop_rx && ($time >= drop_time)) begin
+
+                            inp.rxc = 1;
+
+                            #(UART_CYCLE*10);
+                            break;
+                        end
+
+                        inp.rxc = trn.data[i];
+
+                        if(i==WORD-1)
+                            #(UART_CYCLE) inp.rxc = trn.stop_bit;
+                    end
+
+
+
+                    #(UART_CYCLE) inp.rxc = 1;
+
+                    out_trn.data        =  trn.data;
+                    out_trn.frame_error = !trn.stop_bit;
+                    //out_trn.overrun    = ???
+                    out_trn.drop_trn    =  trn.drop_rx;
+                    out_trn.num         =  id;
+                    trn_port.write(out_trn);
+
+                    time_out = 100;
+
+                    ++id;
+
+                    #(UART_CYCLE);
+
+                    seq_item_port.item_done();
+
+                end
+            end
+            //--------------------------------------------------------
+            // send_rden
+            //
+            begin
+
+                forever begin
+
+                    rx_trn_done.wait_trigger();
+
+                    #(trn.rden_delay*CLK_CYCLE);
+
+                    @(posedge inp.clk) inp.rx_rden = 1;
+                    @(posedge inp.clk) inp.rx_rden = 0;
+
+                end
+            end
+            //--------------------------------------------------------
+            // reset_errors
+            //
+            begin
+
+                forever begin
+
+                    error_flags.wait_trigger();
+
+                    @(posedge inp.clk) inp.rst_err = 1;
+                    @(posedge inp.clk) inp.rst_err = 0;
+
+                end
+            end
+            //--------------------------------------------------------
+            begin : stop_driver
+
+                forever begin
+
+                    #UART_CYCLE;
+                    if(--time_out == 0) begin
+                        break;
+                    end
+                end
+            end
+            //--------------------------------------------------------
+        join_any
+
+        phase.drop_objection(this);
+    endtask
+endclass
+//-------------------------------------------------------------------------------
+`endif // UART_RX_DRIVER_SVH
+
+

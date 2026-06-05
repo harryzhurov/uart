@@ -22,7 +22,11 @@ Import('envx')
 envx['ARGUMENTS']            = ARGUMENTS
 envx['COMMAND_LINE_TARGETS'] = COMMAND_LINE_TARGETS
 
-bv = BuildBase(envx)
-
+#bv = BuildBase(envx)
+bv = BuildBase(env     = envx,
+               src_syn = 'src_syn.yml',
+               src_sim = 'src_sim.yml',
+               hls     = '',
+               ip      = '')
 #-------------------------------------------------------------------------------
 

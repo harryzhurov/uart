@@ -1,78 +1,148 @@
-//===================================================================================
+//-------------------------------------------------------------------------------
 //
-//      Class Monitor
+//     Project: UART Rx
 //
-class Monitor;
+//     Purpose: Monitor
+//
+//     Author : Matthew S. Grebnev, 2026
+//
+//-------------------------------------------------------------------------------
 
-    virtual uart_if vif;
+`ifndef UART_RX_MONITOR_SVH
+`define UART_RX_MONITOR_SVH
+//-------------------------------------------------------------------------------
 
-    int num_trn_rx   =  0;
-    int percent      =  0;
-    int last_percent = -1;
+`include "uvm_macros.svh"
 
-    rx_trn_t   rx_tr_mnt;
-    mnt_rcvd_t mnt_data;
+import uvm_pkg::*;
 
-    mailbox #(mnt_rcvd_t) mnt2scb_rx;
-    
-    function new(mailbox #(mnt_rcvd_t) mnt2scb_rx ,
-                 virtual               uart_if vif);
-    
-        this.mnt2scb_rx = mnt2scb_rx;
-        this.vif        = vif;
-    
+//-------------------------------------------------------------------------------
+class Resp;
+
+    uint8_t  data;
+    logic    frame_error;
+    logic    drop_trn;
+
+    uint16_t num;
+
+    function new();
+
     endfunction
-    
-    function void meas_percent;
-        percent = (this.num_trn_rx*100) / (trn_cfg_pkg::num_trn_rx);
 
-        if (percent != last_percent && (percent % 10 == 0 || percent == 100)) begin
-            $display("INFO: Monitor completed %0d%%", percent);
-            last_percent = percent;
-        end
-    endfunction
-    
-    task automatic receive_rx();
+    function string compare(Resp resp);
 
-        forever begin
+        string msg = "";
 
-            fork
-            begin
-                @(posedge vif.rx_complete, posedge vif.overrun);
-
-                mnt_data.data        = vif.rx_data;
-                mnt_data.frame_error = vif.frame_error;
-                mnt_data.overrun     = vif.overrun;
-
-                mnt2scb_rx.put(mnt_data);
-
-                num_trn_rx++;
-                
-                meas_percent;
-                
-                #UART_CYCLE;
-
-            end
-            begin
-                @(posedge vif.rx_complete)
-                -> vif.rx_rden_en;
-            end
-            begin
-                @(posedge vif.frame_error, posedge vif.overrun);
-                -> vif.reset_err;
-            end
-            join_any
+        if(data !== resp.data) begin
+            msg = $sformatf("ERROR: (scb) : stim data (%x) mismatch with resp data (%x)", data, resp.data);
+            return msg;
         end
 
-    endtask
-    
-    task automatic run();
-    
-        
-        receive_rx();
+        if(frame_error !== resp.frame_error) begin
+            msg = $sformatf("ERROR: (scb) : stim stop bit (%x) mismatch with resp stop bit (%x)", frame_error, resp.frame_error);
 
-        
-    endtask
+            return msg;
+        end
 
-endclass : Monitor
-//===================================================================================
+    endfunction
+
+endclass
+//-------------------------------------------------------------------------------
+class Monitor extends uvm_monitor;
+
+    `uvm_component_utils(Monitor)
+
+    virtual out_if out;
+
+    uint16_t id       = 0;
+    uint16_t time_out = 0;
+
+    uvm_analysis_port #(Resp) resp_port;
+
+    uvm_event rx_trn_done;
+    uvm_event error_flags;
+
+    function new(string name, uvm_component parent);
+        super.new(name, parent);
+        resp_port = new("mon_resp_port", this);
+    endfunction
+
+
+    function void build_phase(uvm_phase phase);
+        if( !uvm_config_db #(virtual out_if)::get(this, "", "out", out) ) begin
+            `uvm_error("", "get DUT output interface from config_db failed");
+        end
+        if( !uvm_config_db #(uvm_event)::get(this, "", "rx_done", rx_trn_done) ) begin
+            `uvm_error("", "get rx_done event form config_db failed");
+        end
+        if( !uvm_config_db #(uvm_event)::get(this, "", "er_flag", error_flags) ) begin
+            `uvm_error("", "get er_flag event form config_db failed");
+        end
+    endfunction
+
+    task main_phase(uvm_phase phase);
+
+        fork
+            //--------------------------------------------------------
+            begin : receive_trn
+
+                forever begin
+
+                    Resp resp = new;
+
+                    @(posedge out.rx_complete, posedge out.overrun);
+
+                    resp.data        = out.rx_data;
+                    resp.frame_error = out.frame_error;
+                    resp.drop_trn    = 0;
+                    resp.num         = id;
+
+                    #UART_CYCLE;
+
+                    resp_port.write(resp);
+                    ++id;
+                    time_out = 50;
+
+                end
+            end
+            //--------------------------------------------------------
+            begin : receive_complete
+
+                forever begin
+
+                    @(posedge out.rx_complete)
+                    rx_trn_done.trigger();
+
+                end
+            end
+            //--------------------------------------------------------
+            begin : receive_errors
+
+                forever begin
+
+                    @(posedge out.frame_error, posedge out.overrun);
+                    error_flags.trigger();
+
+                end
+            end
+            //--------------------------------------------------------
+            begin : stop_monitor
+                forever begin
+                    #UART_CYCLE ;
+                    if(--time_out == 0) begin
+                        break;
+                    end
+                end
+            end
+            //--------------------------------------------------------
+        join_any
+    endtask
+    //----------------------------------------------------------------
+    function void report_phase(uvm_phase phase);
+        $display("[%t], incoming packet count: %0d", $realtime, id);
+    endfunction
+    //----------------------------------------------------------------
+
+endclass
+//-------------------------------------------------------------------------------
+`endif // UDP_RX_AGENT_SVH

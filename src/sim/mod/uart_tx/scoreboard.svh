@@ -1,80 +1,123 @@
-//===================================================================================
+//-------------------------------------------------------------------------------
 //
-//      Class Scoreboard
+//     Project: UART TX
 //
-class Scoreboard;
+//     Purpose: Scoreboard
+//
+//     Author : Matthew S. Grebnev, 2026
+//
+//-------------------------------------------------------------------------------
 
-    int err          = 0;
-    int num_trn_tx   = 0;
-    int percent      =  0;
-    int last_percent = -1;
-    
-    tx_pak_t tx_drv_scb;
-    tx_pak_t tx_mnt_scb;
+`ifndef UART_TX_SCOREBOARD_SVH
+`define UART_TX_SCOREBOARD_SVH
+//-------------------------------------------------------------------------------
 
-    mailbox #(tx_pak_t) drv2scb_tx;
-    mailbox #(tx_pak_t) mnt2scb_tx;
-    
-    covergroup tx_data_cg;
-        tx_data : coverpoint tx_mnt_scb.data
-        {
-            bins dat_0   = {    0    };
-            bins dat_63  = {[  1:63 ]};
-            bins dat_127 = {[ 64:127]};
-            bins dat_254 = {[128:254]};
-            bins dat_255 = {   255   };
-        }
+`include "uvm_macros.svh"
+`include "uart_tx_trn.svh"
+`include "monitor.svh"
+`include "simutils.svh"
 
-        option.per_instance = 1;
+import uvm_pkg::*;
 
-    endgroup
-    
-    function new(mailbox #(tx_pak_t) drv2scb_tx,
-                 mailbox #(tx_pak_t) mnt2scb_tx);
-    
-        this.drv2scb_tx  = drv2scb_tx ;
-        this.mnt2scb_tx  = mnt2scb_tx ;
-        tx_data_cg       = new();
-    
+class Scoreboard extends uvm_component;
+
+    `uvm_component_utils(Scoreboard)
+
+    `uvm_analysis_imp_decl(_stim)
+    `uvm_analysis_imp_decl(_resp)
+
+    uvm_analysis_imp_stim #(Resp,Scoreboard) stim_port;
+    uvm_analysis_imp_resp #(Resp,Scoreboard) resp_port;
+
+    Resp stim_q[$];
+    Resp resp_q[$];
+
+    uint32_t stim_pkt_count;
+    uint32_t resp_pkt_count;
+    const uint16_t TIMEOUT = 100;
+    uint16_t time_out = TIMEOUT;
+
+    //----------------------------------------------------------------
+    function new(string name, uvm_component parent);
+        super.new(name, parent);
+
+        stim_port = new("stim_port", this);
+        resp_port = new("resp_port", this);
+
+        stim_pkt_count = 0;
     endfunction
-    
-    function void meas_percent;
-        percent = (this.num_trn_tx*100) / (trn_cfg_pkg::num_trn_tx);
-
-        if (percent != last_percent && (percent % 10 == 0 || percent == 100)) begin
-            $display("INFO: Scoreboard completed %0d%%", percent);
-            last_percent = percent;
-        end
+    //---------------------------------s-------------------------------
+    function void write_stim(Resp stim);
+        time_out = TIMEOUT;
+        ++stim_pkt_count;
+        stim_q.push_back(stim);
     endfunction
-    
-    task automatic check_tx();
-    
+    //----------------------------------------------------------------
+    function void write_resp(Resp resp);
+        time_out = TIMEOUT;
+        ++resp_pkt_count;
+        resp_q.push_back(resp);
+    endfunction
+    //----------------------------------------------------------------
+    task main_phase(uvm_phase phase);
+
         forever begin
-        
-            drv2scb_tx.get(tx_drv_scb);
-            mnt2scb_tx.get(tx_mnt_scb);
-            if(tx_drv_scb.data !== tx_mnt_scb.data) begin
-            
-                $display("INFO (ERROR) (tx) : bad frame, id : drv = %d, mnt = %d",tx_drv_scb.id, tx_mnt_scb.id);
-                $display("      Sent data = %h, Received = %h",tx_drv_scb.data, tx_mnt_scb.data);
-                err++;
-                
+            #UART_CYCLE;
+            if(--time_out == 0) begin
+                $display("\n[%t], Scoreboard Responce Port timeout expired\n", $realtime);
+                break;
             end
-            
-            num_trn_tx++;
-            tx_data_cg.sample();
-            meas_percent;
-        
         end
-        
     endtask
-    
-    
-    task automatic run();
-            
-         check_tx();
-    
-    endtask
+    //----------------------------------------------------------------
+    function void check_phase(uvm_phase phase);
 
-endclass : Scoreboard
-//===================================================================================
+        string err_msg = "";
+
+        $display("[%t], stim_q.size: %0h", $realtime, stim_q.size());
+        $display("[%t], resp_q.size: %0h", $realtime, resp_q.size());
+
+        if(!stim_q.size()) begin
+            err_msg = $sformatf("ERROR: no valid stimulus");
+        end
+        else if(stim_q.size() != resp_q.size()) begin
+            err_msg = $sformatf("ERROR: stimulus item count [%0d] not equeal responce item count [%0d]",
+                               stim_q.size(),
+                               resp_q.size());
+        end
+        else begin
+            while(stim_q.size()) begin
+
+                Resp stim = stim_q.pop_front();
+                Resp resp = resp_q.pop_front();
+
+                //$display("[%t], stim: %p", $realtime, stim);
+                //$display("[%t], resp: %p", $realtime, resp);
+
+                err_msg = stim.compare(resp);
+                if(err_msg) begin
+                    break;
+                end
+            end
+        end
+
+        if(err_msg) begin
+            log_print(err_msg, colorRED);
+            $display("\n");
+            log_print("****** TEST FAILED ******", colorRED);
+            $display("\n");
+            raise_sim_fatal_error();
+        end
+
+        $display("\n");
+        log_print("****** TEST PASSED ******",colorGREEN);
+        $display("\n");
+
+    endfunction
+    //----------------------------------------------------------------
+
+endclass
+//-------------------------------------------------------------------------------
+`endif // UART_TX_SCOREBOARD_SVH
+
+

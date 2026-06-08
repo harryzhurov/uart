@@ -1,6 +1,6 @@
 //-------------------------------------------------------------------------------
 //
-//     Project: UART_Rx
+//     Project: UART_RX
 //
 //     Purpose: Transactions. UVM Sequence Items and UVM Sequence
 //
@@ -8,8 +8,8 @@
 //
 //-------------------------------------------------------------------------------
 
-`ifndef UART_TRANSACTION_SVH
-`define UART_TRANSACTION_SVH
+`ifndef UART_RX_TRANSACTION_SVH
+`define UART_RX_TRANSACTION_SVH
 //-------------------------------------------------------------------------------
 
 `include "uvm_macros.svh"
@@ -19,14 +19,14 @@ import uvm_pkg::*;
 import uart_params_pkg::*;
 
 //-------------------------------------------------------------------------------
-class UartTrn extends uvm_sequence_item;
+class UartRxTrn extends uvm_sequence_item;
 
     static uint16_t       count = 0;
     uint16_t              id;
 
     rand   bit            stop_bit;
     rand   bit            wrong_rden;
-    rand   bit            del_send;
+    rand   bit            send_del;
     rand   bit            drop_rx;
     rand   uint16_t       send_delay;
     rand   uint16_t       rden_delay;
@@ -61,10 +61,10 @@ class UartTrn extends uvm_sequence_item;
         send_delay inside {[0:send_del_dist_rx]};
 
         wrong_rden  dist  {0 := (100 - rden_del_exist_rx), 1 := (rden_del_exist_rx)};
-        del_send    dist  {0 := (100 - send_del_exist_rx), 1 := (send_del_exist_rx)};
+        send_delay  dist  {0 := (100 - send_del_exist_rx), 1 := (send_del_exist_rx)};
 
-        (del_send == 0) -> (send_delay==0);
-        solve del_send before send_delay;
+        (send_del == 0) -> (send_delay==0);
+        solve send_del before send_delay;
         (wrong_rden==0) -> (rden_delay==0);
         solve wrong_rden before rden_delay;
 
@@ -72,15 +72,15 @@ class UartTrn extends uvm_sequence_item;
 
 endclass
 //-------------------------------------------------------------------------------
-class UartRxSeq extends uvm_sequence #(UartTrn);
+class UartRxSeq extends uvm_sequence #(UartRxTrn);
 
     `uvm_object_utils(UartRxSeq)
 
-    UartTrn uart_trn;
+    UartRxTrn uart_trn;
 
-    int seq_len = 2000;
+    int seq_len = 500;
 
-    function new(string name = "uart rx seq");
+    function new(string name = "uart seq");
         super.new(name);
     endfunction
 
@@ -100,8 +100,5 @@ class UartRxSeq extends uvm_sequence #(UartTrn);
         end
     endtask
 endclass
-
 //-------------------------------------------------------------------------------
-`endif // UART_TRANSACTION_SVH
-
-
+`endif // UART_RX_TRANSACTION_SVH

@@ -28,10 +28,10 @@ class UartRxTest extends uvm_test;
     uvm_event rx_trn_done;
     uvm_event error_flags;
 
-    Scoreboard               scbd;
-    uvm_sequencer #(UartTrn) seqr;
-    Driver                   drv;
-    Monitor                  mon;
+    Scoreboard                 scbd;
+    uvm_sequencer #(UartRxTrn) seqr;
+    Driver                     drv;
+    Monitor                    mon;
 
     function new(string name, uvm_component parent);
         super.new(name, parent);
@@ -39,7 +39,7 @@ class UartRxTest extends uvm_test;
 
     function void build_phase(uvm_phase phase);
         scbd  = Scoreboard::type_id::create("scbd", this);
-        seqr  = uvm_sequencer #(UartTrn)::type_id::create("seqr", this);
+        seqr  = uvm_sequencer #(UartRxTrn)::type_id::create("seqr", this);
         drv   = Driver::type_id::create("drv", this);
         mon   = Monitor::type_id::create("mon", this);
         rx_trn_done = new("rx_trn_done");

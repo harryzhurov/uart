@@ -25,10 +25,10 @@ class UartTxTest extends uvm_test;
 
     `uvm_component_utils(UartTxTest)
 
-    Scoreboard               scbd;
-    uvm_sequencer #(UartTrn) seqr;
-    Driver                   drv;
-    Monitor                  mon;
+    Scoreboard                 scbd;
+    uvm_sequencer #(UartTxTrn) seqr;
+    Driver                     drv;
+    Monitor                    mon;
 
     uvm_event empty_e;
 
@@ -38,7 +38,7 @@ class UartTxTest extends uvm_test;
 
     function void build_phase(uvm_phase phase);
         scbd  = Scoreboard::type_id::create("scbd", this);
-        seqr  = uvm_sequencer #(UartTrn)::type_id::create("seqr", this);
+        seqr  = uvm_sequencer #(UartTxTrn)::type_id::create("seqr", this);
         drv   = Driver::type_id::create("drv", this);
         mon   = Monitor::type_id::create("mon", this);
         empty_e = new("empty_e");

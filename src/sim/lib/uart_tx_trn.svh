@@ -88,5 +88,3 @@ class UartTxSeq extends uvm_sequence #(UartTxTrn);
 endclass
 //-------------------------------------------------------------------------------
 `endif // UART_TRANSACTION_SVH
-
-

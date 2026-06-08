@@ -15,7 +15,8 @@
 `include "uvm_macros.svh"
 `include "uart_rx_trn.svh"
 `include "uart_tx_trn.svh"
-`include "monitor.svh"
+`include "agent_rx.svh"
+`include "agent_tx.svh"
 `include "simutils.svh"
 
 import uvm_pkg::*;

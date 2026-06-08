@@ -1,5 +1,5 @@
 sources:
-    - src/sim/mod/uart_tx/common.svh
-    - src/sim/mod/uart_tx/simutils.svh
-    - src/sim/mod/uart_tx/uart_params_pkg.svh
+    - src/sim/lib/common.svh
+    - src/sim/lib/simutils.svh
+    - src/sim/lib/uart_params_pkg.svh
     - src/sim/mod/uart_tx/top_tb.sv

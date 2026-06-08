@@ -17,9 +17,9 @@
 import uvm_pkg::*;
 
 //-------------------------------------------------------------------------------
-class Driver extends uvm_driver #(UartRxTrn);
+class Driver_rx extends uvm_driver #(UartRxTrn);
 
-    `uvm_component_utils(Driver)
+    `uvm_component_utils(Driver_rx)
 
     uint16_t time_out;
     uint16_t id = 0;
@@ -28,7 +28,7 @@ class Driver extends uvm_driver #(UartRxTrn);
     virtual out_if out;
     UartRxTrn trn;
 
-    uvm_analysis_port #(Resp) trn_port;
+    uvm_analysis_port #(Resp_rx) trn_port_rx;
 
     uvm_event rx_trn_done;
     uvm_event error_flags;
@@ -36,7 +36,7 @@ class Driver extends uvm_driver #(UartRxTrn);
     function new(string name, uvm_component parent);
         super.new(name, parent);
 
-        trn_port = new("trn_port", this);
+        trn_port_rx = new("trn_port_rx", this);
     endfunction
 
     function void build_phase(uvm_phase phase);
@@ -68,7 +68,7 @@ class Driver extends uvm_driver #(UartRxTrn);
 
                     int drop_time = 0;
 
-                    Resp out_trn = new();
+                    Resp_rx out_trn = new();
 
                     seq_item_port.get_next_item(trn);
 
@@ -106,7 +106,7 @@ class Driver extends uvm_driver #(UartRxTrn);
                     //out_trn.overrun    = ???
                     out_trn.drop_trn    =  trn.drop_rx;
                     out_trn.num         =  id;
-                    trn_port.write(out_trn);
+                    trn_port_rx.write(out_trn);
 
                     time_out = 100;
 

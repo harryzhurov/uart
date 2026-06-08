@@ -19,7 +19,7 @@ import uvm_pkg::*;
 import uart_params_pkg::*;
 
 //-------------------------------------------------------------------------------
-class UartTrn extends uvm_sequence_item;
+class UartTxTrn extends uvm_sequence_item;
 
     static uint16_t       count = 0;
     uint16_t              id;
@@ -54,15 +54,15 @@ class UartTrn extends uvm_sequence_item;
 
 endclass
 //-------------------------------------------------------------------------------
-class UartTxSeq extends uvm_sequence #(UartTrn);
+class UartTxSeq extends uvm_sequence #(UartTxTrn);
 
     `uvm_object_utils(UartTxSeq)
 
-    UartTrn uart_trn;
+    UartTxTrn uart_trn;
 
     uvm_event empty_e;
 
-    int seq_len = 2000;
+    int seq_len = 500;
 
     function new(string name = "seq");
         super.new(name);
@@ -86,8 +86,5 @@ class UartTxSeq extends uvm_sequence #(UartTrn);
         end
     endtask
 endclass
-
 //-------------------------------------------------------------------------------
 `endif // UART_TRANSACTION_SVH
-
-

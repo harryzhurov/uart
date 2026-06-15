@@ -4,7 +4,6 @@ interface uart_if;
     import params_pkg::*;
 //=======================================================
     logic            clk;
-    logic            baud_pulse;
 
     logic            rxc;
     logic            txc;
@@ -20,11 +19,8 @@ interface uart_if;
     logic            tx_wren;
     logic            tx_empty;
     logic            tx_complete;
-    
-    event            rx_rden_en;
-    event            reset_err;
 //=======================================================
-    
+
     modport uart_mp
     (
         input  clk,
@@ -36,14 +32,14 @@ interface uart_if;
         output rx_complete,
         output frame_error,
         output overrun,
-        
+
         input  tx_wren,
         input  tx_data,
         output txc,
         output tx_empty,
         output tx_complete
     );
-    
+
 //======================================================
 endinterface
 //=======================================================

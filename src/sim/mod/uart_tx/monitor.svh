@@ -111,7 +111,7 @@ class Monitor extends uvm_monitor;
             begin : stop_monitor
                 forever begin
                     #UART_CYCLE ;
-                    if(--time_out == 0) begin
+                    if(--time_out) begin
                         break;
                     end
                 end

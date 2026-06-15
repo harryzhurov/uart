@@ -22,8 +22,36 @@ Import('envx')
 envx['ARGUMENTS']            = ARGUMENTS
 envx['COMMAND_LINE_TARGETS'] = COMMAND_LINE_TARGETS
 
+class BuildUart(BuildBase):
+
+#   def __init__(self, **src_dict):
+#       super().__init__(**src_dict)
+
+    def add_tcl_params_targets(self):
+
+        super().add_tcl_params_targets()
+
+        cfg_params_tcl      = os.path.join(self.envx['BUILD_SRC_PATH'], 'cfg_params.tcl')
+        env_params_tcl      = os.path.join(self.envx['BUILD_SRC_PATH'], 'env_params.tcl')
+        ila_params_tcl      = os.path.join(self.envx['BUILD_SRC_PATH'], 'ila_params.tcl')
+        impl_env_tcl        = os.path.join(self.envx['BUILD_SRC_PATH'], 'impl_env.tcl')
+
+        self.prj_impl_deps.append(impl_env_tcl)
+
+        self.CfgParamsTcl   = self.envx.CreateCfgParamsTcl(cfg_params_tcl, 'params.yml main.yml')
+        self.EnvParamsTcl   = self.envx.CreateCfgParamsTcl(env_params_tcl, 'env.yml dirpath.yml')
+        self.IlaParamsTcl   = self.envx.CreateCfgParamsTcl(ila_params_tcl, 'ila.yml')
+        self.ImplEnvTcl     = self.envx.CreateCfgParamsTcl(impl_env_tcl,   'main.yml clk.yml dirpath.yml ila.yml')
+
+        self.cfg_tcl_trgs   = [self.CfgParamsTcl,
+                               self.EnvParamsTcl,
+                               self.IlaParamsTcl,
+                               self.ImplEnvTcl]
+
+
+
 #bv = BuildBase(envx)
-bv = BuildBase(env     = envx,
+bv = BuildUart(env     = envx,
                src_syn = 'src_syn.yml',
                src_sim = 'src_sim.yml',
                hls     = '',

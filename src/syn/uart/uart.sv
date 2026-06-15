@@ -48,7 +48,7 @@ always_ff @(posedge ifs.clk) begin
     baud_cnt      <= baud_cnt + 1;
     baud_tick <= 0;
     if (baud_cnt == BIT_PERIOD - 1) begin
-        baud_cnt      <= 0;
+        baud_cnt  <= 0;
         baud_tick <= 1;
     end
 end
@@ -60,7 +60,7 @@ always_ff @(posedge ifs.clk) begin
 //-----------------------------------
 //  RX Control part
 //-----------------------------------
-    
+
     if(init_en) begin
         ifs.rx_complete <= 1'b0;
         ifs.frame_error <= 1'b0;
@@ -95,7 +95,7 @@ always_ff @(posedge ifs.clk) begin
 
     if(tx_done)
         ifs.tx_complete <= 1'b1;
-    
+
 end
 //=======================================================
 //

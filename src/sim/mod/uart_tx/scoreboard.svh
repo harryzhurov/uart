@@ -26,8 +26,8 @@ class Scoreboard extends uvm_component;
     `uvm_analysis_imp_decl(_stim)
     `uvm_analysis_imp_decl(_resp)
 
-    uvm_analysis_imp_stim #(Resp,Scoreboard) stim_port;
-    uvm_analysis_imp_resp #(Resp,Scoreboard) resp_port;
+    uvm_analysis_imp_stim #(Resp, Scoreboard) stim_port;
+    uvm_analysis_imp_resp #(Resp, Scoreboard) resp_port;
 
     Resp stim_q[$];
     Resp resp_q[$];

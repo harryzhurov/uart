@@ -14,7 +14,7 @@ set_property CONFIG_VOLTAGE 3.3 [current_design]
 #    ref_clk
 #-------------------------------------------------------------------------------
 
-create_clock -period $REF_CLK_PERIOD -name clk
+create_clock -period 10 -name clk
 
 set_property -dict {PACKAGE_PIN E3 IOSTANDARD LVCMOS33} [get_ports clk]
 

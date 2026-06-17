@@ -23,13 +23,12 @@ module uart_tx (
 //
 typedef logic [WORD-1:0] data_t;
 
-typedef enum logic[1:0]
+typedef enum logic
 {
-    TX_STATE_HOLD,
-    TX_STATE_NEXT,
-    TX_STATE_START
+    HOLD,
+    NEXT
 }
-tx_stat_t;
+pre_state_t;
 
 typedef enum logic [1:0]
 {
@@ -47,7 +46,7 @@ data_t      tx_shift        = 0;
 data_t      tx_buffer       = 0;
 logic [3:0] tx_bit_cnt      = 0;
 
-tx_stat_t   tx_stat         = TX_STATE_HOLD;
+pre_state_t pre_state       = HOLD;
 tx_state_t  tx_state        = TX_IDLE;
 //=======================================================
 //
@@ -57,20 +56,33 @@ tx_state_t  tx_state        = TX_IDLE;
 //
 //  TX state machine manager
 //
-always_ff@(negedge clk) begin
-    if(tx_stat == TX_STATE_HOLD) begin
-    end
-    else if(tx_stat == TX_STATE_NEXT) begin
-       case(tx_state)
-        TX_IDLE  : tx_state <= TX_START;
-        TX_START : tx_state <= TX_DATA;
-        TX_DATA  : tx_state <= TX_STOP;
-        TX_STOP  : tx_state <= TX_IDLE;
-       endcase
-    end
-    else if (tx_stat == TX_STATE_START) begin
-       tx_state <= TX_START;
-    end
+always_comb begin
+
+    case(tx_state)
+        TX_IDLE :
+            pre_state = ( !tx_empty ) ? NEXT : HOLD;
+        TX_START: 
+            pre_state = ( baud_tick ) ? NEXT : HOLD;
+        TX_DATA :
+            pre_state = ( tx_bit_cnt == WORD-1 ) ? NEXT : HOLD;
+        TX_STOP :
+            pre_state = ( baud_tick ) ? NEXT : HOLD;
+    endcase
+end
+
+always_ff @(posedge clk) begin
+
+    case(pre_state)
+        HOLD:
+            tx_state <= tx_state;
+        NEXT:
+            case(tx_state)
+                TX_IDLE : tx_state <= TX_START;
+                TX_START: tx_state <= TX_DATA;
+                TX_DATA : tx_state <= TX_STOP;
+                TX_STOP : tx_state <= (tx_empty) ? TX_IDLE : TX_START;
+            endcase
+    endcase
 end
 //-------------------------------------------------------
 //
@@ -96,31 +108,23 @@ always_ff @(posedge clk) begin
 
     TX_IDLE: begin
 
-        tx_stat     <= TX_STATE_HOLD;
-
         if (!tx_empty) begin
 
             tx_shift <= tx_buffer;
             tx_empty <= 1'b1;
-            tx_stat  <= TX_STATE_NEXT;
 
         end
     end
     TX_START: begin
 
-        tx_stat  <= TX_STATE_HOLD;
-
         if (baud_tick) begin
 
             txc        <= 1'b0;
             tx_bit_cnt <= 4'd0;
-            tx_stat    <= TX_STATE_NEXT;
 
         end
     end
     TX_DATA: begin
-
-        tx_stat <= TX_STATE_HOLD;
 
         if (baud_tick) begin
 
@@ -128,13 +132,9 @@ always_ff @(posedge clk) begin
             tx_shift   <= {tx_shift[6:0],1'b0 };
             tx_bit_cnt <= tx_bit_cnt + 1;
 
-            if (tx_bit_cnt == WORD-1)
-                tx_stat <= TX_STATE_NEXT;
         end
     end
     TX_STOP: begin
-
-        tx_stat <= TX_STATE_HOLD;
 
         if (baud_tick) begin
 
@@ -144,12 +144,10 @@ always_ff @(posedge clk) begin
 
                 tx_shift <= tx_buffer;
                 tx_empty <= 1'b1;
-                tx_stat  <= TX_STATE_START;
 
             end else begin
 
                 tx_done <= 1'b1;
-                tx_stat <= TX_STATE_NEXT;
 
             end
         end

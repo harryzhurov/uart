@@ -23,13 +23,6 @@ module uart_tx (
 //
 typedef logic [WORD-1:0] data_t;
 
-typedef enum logic
-{
-    HOLD,
-    NEXT
-}
-pre_state_t;
-
 typedef enum logic [1:0]
 {
     TX_IDLE,
@@ -46,8 +39,8 @@ data_t      tx_shift        = 0;
 data_t      tx_buffer       = 0;
 logic [3:0] tx_bit_cnt      = 0;
 
-pre_state_t pre_state       = HOLD;
 tx_state_t  tx_state        = TX_IDLE;
+tx_state_t  tx_state_next   = tx_state;
 //=======================================================
 //
 //          Processes
@@ -56,33 +49,45 @@ tx_state_t  tx_state        = TX_IDLE;
 //
 //  TX state machine manager
 //
-always_comb begin
-
-    case(tx_state)
-        TX_IDLE :
-            pre_state = ( !tx_empty ) ? NEXT : HOLD;
-        TX_START: 
-            pre_state = ( baud_tick ) ? NEXT : HOLD;
-        TX_DATA :
-            pre_state = ( tx_bit_cnt == WORD-1 ) ? NEXT : HOLD;
-        TX_STOP :
-            pre_state = ( baud_tick ) ? NEXT : HOLD;
-    endcase
+always_ff @(posedge clk) begin
+    tx_state <= tx_state_next;
 end
 
-always_ff @(posedge clk) begin
+always_comb begin
 
-    case(pre_state)
-        HOLD:
-            tx_state <= tx_state;
-        NEXT:
-            case(tx_state)
-                TX_IDLE : tx_state <= TX_START;
-                TX_START: tx_state <= TX_DATA;
-                TX_DATA : tx_state <= TX_STOP;
-                TX_STOP : tx_state <= (tx_empty) ? TX_IDLE : TX_START;
-            endcase
+    automatic tx_state_t next = tx_state;
+
+    unique case (tx_state)
+        TX_IDLE: begin
+            if(!tx_empty) begin
+                next = TX_START;
+            end
+        end
+
+        TX_START : begin
+            if(baud_tick) begin
+                next = TX_DATA;
+            end
+        end
+
+        TX_DATA : begin
+            if(tx_bit_cnt == WORD) begin
+                next = TX_STOP;
+            end
+        end
+
+        TX_STOP : begin
+            if(baud_tick && !tx_empty) begin
+                next = TX_START;
+            end
+            else if (baud_tick && tx_empty) begin
+                next = TX_IDLE;
+            end
+        end
     endcase
+
+    tx_state_next = next;
+
 end
 //-------------------------------------------------------
 //
@@ -94,7 +99,7 @@ always_ff @(posedge clk) begin
         txc      <= 1'b1;
         tx_empty <= 1'b1;
     end
-    
+
     if(tx_wren) begin
 
         tx_empty  <= 1'b0;

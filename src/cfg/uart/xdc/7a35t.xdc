@@ -21,24 +21,22 @@ set_property -dict {PACKAGE_PIN E3 IOSTANDARD LVCMOS33} [get_ports clk]
 #-------------------------------------------------------------------------------
 #    Timing
 #-------------------------------------------------------------------------------
-set_input_delay   -clock clk -max 0.0 [get_ports rxc]
-set_output_delay  -clock clk -max 0.0 [get_ports txc]
 #-------------------------------------------------------------------------------
 #    Pin locations
 #-------------------------------------------------------------------------------
 
 set_property PACKAGE_PIN E3  [get_ports clk         ]
-set_property PACKAGE_PIN K17 [get_ports rxc         ]
-set_property PACKAGE_PIN K18 [get_ports txc         ]
+set_property PACKAGE_PIN K17 [get_ports inp         ]
+set_property PACKAGE_PIN K18 [get_ports out         ]
 
 #-------------------------------------------------------------------------------
 
 set_property IOSTANDARD LVCMOS33 [get_ports clk     ]
-set_property IOSTANDARD LVCMOS33 [get_ports txc     ]
-set_property IOSTANDARD LVCMOS33 [get_ports rxc     ]
+set_property IOSTANDARD LVCMOS33 [get_ports inp     ]
+set_property IOSTANDARD LVCMOS33 [get_ports out     ]
 
 #-------------------------------------------------------------------------------
 
-set_false_path -from [get_clocks clk] -to [get_ports txc]
-set_false_path -from [get_ports rxc] -to [get_clocks clk]
+#set_false_path -from [get_clocks clk] -to [get_ports txc]
+#set_false_path -from [get_ports rxc] -to [get_clocks clk]
 

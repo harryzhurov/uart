@@ -5,6 +5,7 @@
 //     Purpose: Default top-level file
 //
 //-------------------------------------------------------------------------------
+import params_pkg::*;
 
 module automatic top
 (
@@ -23,34 +24,32 @@ module automatic top
 //
 typedef struct packed
 {
-    logic       rxc    ;
-    logic       rx_rden;
-    logic       rst_err;
-    logic       tx_wren;
-    logic [7:0] tx_data;
+    logic            rxc;
+    logic            rx_rden;
+    logic            rst_err;
+    logic            tx_wren;
+    logic [WORD-1:0] tx_data;
 }
 inps_t;
 
 typedef struct packed
 {
-    logic [7:0] rx_data    ;
-    logic       rx_complete;
-    logic       frame_error;
-    logic       overrun    ;
-    logic       txc        ;
-    logic       tx_empty   ;
-    logic       tx_complete;
+    logic            txc;
+    logic            tx_complete;
+    logic            tx_empty;
+    logic            rx_complete;
+    logic            frame_error;
+    logic            overrun;
+    logic [WORD-1:0] rx_data;
 }
 outs_t;
 //------------------------------------------------------------------------------
 //
 //    Objects
 //
-inps_t inps;
-outs_t outs;
-
-uart_if dut();
-
+uart_if uif();
+inps_t  inps;
+outs_t  outs;
 //------------------------------------------------------------------------------
 //
 //    Functions and tasks
@@ -60,28 +59,31 @@ uart_if dut();
 //
 //    Logic
 //
-always_ff @(posedge clk) begin
-    dut.rxc     <= inps.rxc    ;
-    dut.rx_rden <= inps.rx_rden;
-    dut.rst_err <= inps.rst_err;
-    dut.tx_wren <= inps.tx_wren;
-    dut.tx_data <= inps.tx_data;
 
-    inps[$bits(inps)-1:1]  <= inps[$bits(inps)-2:0];
-    inps[0]   <= inp;
+assign uif.clk = clk;
+
+always_ff @(posedge clk) begin
+
+    uif.rxc     <= inps.rxc;
+    uif.rx_rden <= inps.rx_rden;
+    uif.rst_err <= inps.rst_err;
+    uif.tx_wren <= inps.tx_wren;
+    uif.tx_data <= inps.tx_data;
+
+    inps[$bits(inps)-1:1] <= inps[$bits(inps)-2:0];
+    inps[0] <= inp;
 end
 
 always_ff @(posedge clk) begin
 
     if(inp) begin
-    outs.rx_data     <= dut.rx_data    ;
-    outs.rx_complete <= dut.rx_complete;
-    outs.frame_error <= dut.frame_error;
-    outs.overrun     <= dut.overrun    ;
-    outs.txc         <= dut.txc        ;
-    outs.tx_empty    <= dut.tx_empty   ;
-    outs.tx_complete <= dut.tx_complete;
-
+        outs.txc         <= uif.txc;
+        outs.tx_complete <= uif.tx_complete;
+        outs.tx_empty    <= uif.tx_empty;
+        outs.rx_complete <= uif.rx_complete;
+        outs.frame_error <= uif.frame_error;
+        outs.overrun     <= uif.overrun;
+        outs.rx_data     <= uif.rx_data;
     end
     else begin
         out  <= outs[0];
@@ -94,8 +96,7 @@ end
 //
 uart uart_inst
 (
-    .clk ( clk ),
-    .pld ( dut )
+    .ifs ( uif.uart_mp )
 );
 //-------------------------------------------------------------------------------
 endmodule : top

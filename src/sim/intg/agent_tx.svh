@@ -43,7 +43,7 @@ class Monitor_tx extends uvm_monitor;
 
     `uvm_component_utils(Monitor_tx)
 
-    virtual out_if out;
+    virtual uart_if pld;
 
     uint8_t  tx_data_pre = 0;
     uint16_t id          = 0;
@@ -60,7 +60,7 @@ class Monitor_tx extends uvm_monitor;
 
 
     function void build_phase(uvm_phase phase);
-        if( !uvm_config_db #(virtual out_if)::get(this, "", "out", out) ) begin
+        if( !uvm_config_db #(virtual uart_if)::get(this, "", "pld", pld) ) begin
             `uvm_error("", "get DUT output interface from config_db failed");
         end
         if( !uvm_config_db #(uvm_event)::get(this, "", "empty_e", empty_e) ) begin
@@ -78,12 +78,12 @@ class Monitor_tx extends uvm_monitor;
 
                     Resp_tx resp_tx = new;
 
-                    @(negedge out.txc);
+                    @(negedge pld.txc);
 
                     #(UART_CYCLE+UART_CYCLE/2);
 
                     for(int i = 0; i < WORD; i++) begin
-                        tx_data_pre = {tx_data_pre[WORD-2:0],out.txc};
+                        tx_data_pre = {tx_data_pre[WORD-2:0],pld.txc};
                         #UART_CYCLE;
                     end
 
@@ -100,7 +100,7 @@ class Monitor_tx extends uvm_monitor;
             begin : trigg_tx_empty
                 forever begin
                     #(CLK_CYCLE);
-                    if(out.tx_empty) begin
+                    if(pld.tx_empty) begin
                         empty_e.trigger();
                     end
                 end
@@ -131,7 +131,8 @@ class Driver_tx extends uvm_driver #(UartTxTrn);
     uint16_t time_out;
     uint16_t id = 0;
 
-    virtual inp_if inp;
+    virtual uart_if pld;
+    virtual clk_if cv;
 
     UartTxTrn trn;
 
@@ -143,8 +144,11 @@ class Driver_tx extends uvm_driver #(UartTxTrn);
     endfunction
 
     function void build_phase(uvm_phase phase);
-        if( !uvm_config_db #(virtual inp_if)::get(this, "", "inp", inp) ) begin
+        if( !uvm_config_db #(virtual uart_if)::get(this, "", "pld", pld) ) begin
             `uvm_error("", "get DUT input interface form config_db failed");
+        end
+        if( !uvm_config_db #(virtual clk_if)::get(this, "", "cv", cv) ) begin
+            `uvm_error("", "get TB clk interface form config_db failed");
         end
     endfunction
 
@@ -165,10 +169,10 @@ class Driver_tx extends uvm_driver #(UartTxTrn);
 
                     #(trn.data_delay*CLK_CYCLE);
 
-                    inp.tx_data = trn.data;
+                    pld.tx_data = trn.data;
 
-                    @(posedge inp.clk) inp.tx_wren = 1;
-                    @(posedge inp.clk) inp.tx_wren = 0;
+                    @(posedge cv.clk) pld.tx_wren = 1;
+                    @(posedge cv.clk) pld.tx_wren = 0;
 
                     out_trn.data = trn.data;
                     out_trn.num  = id;

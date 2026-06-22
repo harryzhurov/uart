@@ -52,7 +52,7 @@ class Monitor_rx extends uvm_monitor;
 
     `uvm_component_utils(Monitor_rx)
 
-    virtual out_if out;
+    virtual uart_if pld;
 
     uint16_t id          = 0;
     uint16_t time_out    = 0;
@@ -69,7 +69,7 @@ class Monitor_rx extends uvm_monitor;
 
 
     function void build_phase(uvm_phase phase);
-        if( !uvm_config_db #(virtual out_if)::get(this, "", "out", out) ) begin
+        if( !uvm_config_db #(virtual uart_if)::get(this, "", "pld", pld) ) begin
             `uvm_error("", "get DUT output interface from config_db failed");
         end
         if( !uvm_config_db #(uvm_event)::get(this, "", "rx_done", rx_trn_done) ) begin
@@ -90,10 +90,10 @@ class Monitor_rx extends uvm_monitor;
 
                     Resp_rx resp_rx = new;
 
-                    @(posedge out.rx_complete, posedge out.overrun);
+                    @(posedge pld.rx_complete, posedge pld.overrun);
 
-                    resp_rx.data        = out.rx_data;
-                    resp_rx.frame_error = out.frame_error;
+                    resp_rx.data        = pld.rx_data;
+                    resp_rx.frame_error = pld.frame_error;
                     resp_rx.drop_trn    = 0;
                     resp_rx.num         = id;
 
@@ -110,7 +110,7 @@ class Monitor_rx extends uvm_monitor;
 
                 forever begin
 
-                    @(posedge out.rx_complete)
+                    @(posedge pld.rx_complete)
                     rx_trn_done.trigger();
 
                 end
@@ -120,7 +120,7 @@ class Monitor_rx extends uvm_monitor;
 
                 forever begin
 
-                    @(posedge out.frame_error, posedge out.overrun);
+                    @(posedge pld.frame_error, posedge pld.overrun);
                     error_flags.trigger();
 
                 end
@@ -151,8 +151,8 @@ class Driver_rx extends uvm_driver #(UartRxTrn);
     uint16_t time_out;
     uint16_t id = 0;
 
-    virtual inp_if inp;
-    virtual out_if out;
+    virtual uart_if pld;
+    virtual clk_if cv;
     UartRxTrn trn;
 
     uvm_analysis_port #(Resp_rx) trn_port_rx;
@@ -167,8 +167,11 @@ class Driver_rx extends uvm_driver #(UartRxTrn);
     endfunction
 
     function void build_phase(uvm_phase phase);
-        if( !uvm_config_db #(virtual inp_if)::get(this, "", "inp", inp) ) begin
+        if( !uvm_config_db #(virtual uart_if)::get(this, "", "pld", pld) ) begin
             `uvm_error("", "get DUT input interface form config_db failed");
+        end
+        if( !uvm_config_db #(virtual clk_if)::get(this, "", "cv", cv) ) begin
+            `uvm_error("", "get TB interface form config_db failed");
         end
         if( !uvm_config_db #(uvm_event)::get(this, "", "rx_done", rx_trn_done) ) begin
             `uvm_error("", "get rx_done event form config_db failed");
@@ -189,7 +192,7 @@ class Driver_rx extends uvm_driver #(UartRxTrn);
             //
             begin
 
-                inp.rxc = 1;
+                pld.rxc = 1;
 
                 forever begin
 
@@ -201,8 +204,8 @@ class Driver_rx extends uvm_driver #(UartRxTrn);
 
                     #(trn.send_delay*CLK_CYCLE);
 
-                    wait(inp.baud_pulse);
-                    inp.rxc = 0;
+                    wait(cv.baud_pulse);
+                    pld.rxc = 0;
 
                     drop_time = $time + trn.drop_rx_del;
 
@@ -212,21 +215,21 @@ class Driver_rx extends uvm_driver #(UartRxTrn);
 
                         if(trn.drop_rx && ($time >= drop_time)) begin
 
-                            inp.rxc = 1;
+                            pld.rxc = 1;
 
                             #(UART_CYCLE*10);
                             break;
                         end
 
-                        inp.rxc = trn.data[i];
+                        pld.rxc = trn.data[i];
 
                         if(i==WORD-1)
-                            #(UART_CYCLE) inp.rxc = trn.stop_bit;
+                            #(UART_CYCLE) pld.rxc = trn.stop_bit;
                     end
 
 
 
-                    #(UART_CYCLE) inp.rxc = 1;
+                    #(UART_CYCLE) pld.rxc = 1;
 
                     out_trn.data        =  trn.data;
                     out_trn.frame_error = !trn.stop_bit;
@@ -256,8 +259,8 @@ class Driver_rx extends uvm_driver #(UartRxTrn);
 
                     #(trn.rden_delay*CLK_CYCLE);
 
-                    @(posedge inp.clk) inp.rx_rden = 1;
-                    @(posedge inp.clk) inp.rx_rden = 0;
+                    @(posedge cv.clk) pld.rx_rden = 1;
+                    @(posedge cv.clk) pld.rx_rden = 0;
 
                 end
             end
@@ -270,8 +273,8 @@ class Driver_rx extends uvm_driver #(UartRxTrn);
 
                     error_flags.wait_trigger();
 
-                    @(posedge inp.clk) inp.rst_err = 1;
-                    @(posedge inp.clk) inp.rst_err = 0;
+                    @(posedge cv.clk) pld.rst_err = 1;
+                    @(posedge cv.clk) pld.rst_err = 0;
 
                 end
             end

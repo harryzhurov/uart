@@ -20,13 +20,6 @@ module uart_rx (
 //
 typedef logic [WORD-1:0] data_t;
 
-typedef enum logic[1:0]
-{
-    HOLD,
-    NEXT
-}
-pre_state_t;
-
 typedef enum logic [1:0]
 {
     RX_IDLE,
@@ -46,47 +39,60 @@ logic       rx_timer_en     = 0;
 logic       start_detected  = 0;
 data_t      rx_shift        = 0;
 
-pre_state_t pre_state       = HOLD;
 rx_state_t  rx_state        = RX_IDLE;
+rx_state_t  rx_state_next   = rx_state;
 //=======================================================
 //
 //          Process
 //
 //-------------------------------------------------------
 //
-//  RX state machine manage
+//  RX state machine manager
 //
+always_ff @(posedge clk) begin
+    rx_state <= rx_state_next;
+end
+
 always_comb begin
 
-    case(rx_state)
+    automatic rx_state_t next = rx_state;
 
-        RX_IDLE : 
-            pre_state = ( start_detected         ) ? NEXT : HOLD;
-        RX_HALF :
-            pre_state = ( rx_timer == HALF_PERIOD) ? NEXT : HOLD;
-        RX_DATA : 
-            pre_state = ( rx_bit_cnt == WORD-1   ) ? NEXT : HOLD;
-        RX_STOP : 
-            pre_state = ( rx_timer == BIT_PERIOD ) ? NEXT : HOLD;
+    unique case(rx_state)
+
+        RX_IDLE : begin
+            if(start_detected) begin
+                next = RX_HALF;
+            end
+        end
+
+        RX_HALF : begin
+            if(rx_timer == HALF_PERIOD && !rxc_shift[2]) begin
+                next = RX_DATA;
+            end
+            else if (rx_timer == HALF_PERIOD && rxc_shift[2]) begin
+                next = RX_IDLE;
+            end
+        end
+
+        RX_DATA : begin
+            if(rx_bit_cnt == WORD) begin
+                next = RX_STOP;
+            end
+        end
+
+        RX_STOP : begin
+            if(rx_timer == BIT_PERIOD) begin
+                next = RX_IDLE;
+            end
+        end
     endcase
+
+    rx_state_next = next;
 end
-
-always_ff @(posedge clk) begin
-
-    case (pre_state)
-        HOLD:
-            rx_state <= rx_state;
-        NEXT:
-            case (rx_state)
-                RX_IDLE: rx_state <= RX_HALF;
-                RX_HALF: rx_state <= ( rxc_shift[2] == 1'b0 ) ? RX_DATA : RX_IDLE;
-                RX_DATA: rx_state <= RX_STOP;
-                RX_STOP: rx_state <= RX_IDLE; 
-            endcase
-    endcase
-
-end
-
+//-------------------------------------------------------
+//
+//  Synchronization
+//
 always_ff @(posedge clk) begin
     rxc_shift[0] <= rxc;
     rxc_shift[1] <= rxc_shift[0];
